@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ElectroDocument.Controllers.Services
 {
@@ -18,6 +19,13 @@ namespace ElectroDocument.Controllers.Services
         {
             cache = distributedCache;
             db = context;
+        }
+
+        public async Task<Employee?> GetEmployeeAsync(string id)
+        {
+            db.EmployeeCredentials.Load();
+            db.Individuals.Load();
+            return await db.Employees.FindAsync(Convert.ToInt64(id));
         }
 
         public async Task<Employee?> GetEmployeeAsync(LoginData data)

@@ -1,10 +1,15 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.IdentityModel.Tokens;
+
+using StackExchange.Redis;
+
 using ElectroDocument.Models;
 using ElectroDocument.Controllers.Services;
 using ElectroDocument.Controllers.AppContext;
-using StackExchange.Redis;
+using ElectroDocument.Middleware;
+using System.Net;
+using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,8 +28,8 @@ builder.Services.AddStackExchangeRedisCache(options =>
     };
 });
 
+builder.Services.AddSession();
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -32,26 +37,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            // указывает, будет ли валидироваться издатель при валидации токена
             ValidateIssuer = true,
-            // строка, представляющая издателя
             ValidIssuer = AuthOptions.ISSUER,
-            // будет ли валидироваться потребитель токена
             ValidateAudience = true,
-            // установка потребителя токена
             ValidAudience = AuthOptions.AUDIENCE,
-            // будет ли валидироваться время существования
             ValidateLifetime = true,
-            // установка ключа безопасности
             IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
-            // валидация ключа безопасности
             ValidateIssuerSigningKey = true,
+            
+            RoleClaimType="RolePolicy"
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.RequireClaim("RolePolicy", new[] { "Admin" }));
+    options.AddPolicy("User", policy => policy.RequireClaim("RolePolicy", new[] { "User" }));
+});
 
 var app = builder.Build();
+
+app.UseSession();
+app.UseMiddleware<JwtMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -60,6 +67,25 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseStatusCodePages(async context =>
+{
+    var request = context.HttpContext.Request;
+    var response = context.HttpContext.Response;
+
+    if(response.StatusCode == (int)HttpStatusCode.Unauthorized)
+    {
+        response.Redirect("/Auth");
+    }
+    else if (response.StatusCode == (int)HttpStatusCode.NotFound)
+    {
+        response.Redirect("/");
+    }
+    else if (response.StatusCode == (int)HttpStatusCode.Forbidden)
+    {
+        response.Redirect("/");
+    }
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

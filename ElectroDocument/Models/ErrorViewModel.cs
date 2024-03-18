@@ -1,6 +1,6 @@
 namespace ElectroDocument.Models
 {
-    public class ErrorViewModel : LayoutModel
+    public class ErrorViewModel
     {
         public string? RequestId { get; set; }
 

@@ -1,6 +1,16 @@
 ﻿@{
-    ViewData["Title"] = "Политика приватности";
+    ViewData["Title"] = $"Профиль - {Model.FullName}";
+    string FullName = Model.FullName;
+    string Name = Model.Name;
+    string Surname = Model.Surname;
+    string? Patronymic = Model.Patronymic;
+    string ImageUrl = Model.ImageUrl;
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<body>
+    <div class="container">
+        <img src="@ImageUrl" alt="Profile Image" class="profile-img">
+        <h1 class="fullname">@FullName</h1>
+        <!-- Additional profile information can be added here -->
+    </div>
+</body>

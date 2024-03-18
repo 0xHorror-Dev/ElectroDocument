@@ -17,19 +17,19 @@ namespace ElectroDocument.Controllers
 
         public IActionResult Index()
         {
-            return View(new LayoutModel { IsAuthenticated = false });
+            return View();
         }
 
-        
+        [Authorize(Policy = "Admin")]
         public IActionResult Privacy()
         {
-            return View(new LayoutModel { IsAuthenticated = false });
+            return View();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { IsAuthenticated = false, RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }
