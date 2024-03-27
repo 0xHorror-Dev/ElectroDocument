@@ -45,6 +45,7 @@ public partial class ElectroDocumentContext : DbContext
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
             entity.Property(e => e.CredentialsId).HasColumnType("bigint(20)");
             entity.Property(e => e.IndividualId).HasColumnType("bigint(20)");
+            entity.Property(e => e.Policy).HasMaxLength(250);
 
             entity.HasOne(d => d.Credentials).WithMany(p => p.Employees)
                 .HasForeignKey(d => d.CredentialsId)

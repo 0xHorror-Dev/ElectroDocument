@@ -62,5 +62,32 @@ namespace ElectroDocument.Controllers.Services
             return employee;
         }
 
+        public void RegisterUser(UsersUserModel usersModel)
+        {
+            try
+            {
+                Employee emp = new Employee() { Policy = usersModel.Policy };
+                emp.Individual = new Individual { Address = usersModel.Address, Name = usersModel.Name, Patronymic = usersModel.Patronymic, PhoneNumber = usersModel.PhoneNumber };
+                emp.Credentials = new EmployeeCredential { Password = usersModel.Password, UserName = usersModel.UserName };
+                db.Employees.Add(emp);
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                // Handle or log the exception
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
+        }
+
+
+        public async Task<IEnumerable<Employee?>> GetEmployees()
+        {
+            await db.Employees.LoadAsync();
+            await db.Individuals.LoadAsync();
+
+            return db.Employees;
+        }
+
     }
 }

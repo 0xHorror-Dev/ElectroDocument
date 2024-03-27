@@ -53,6 +53,7 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Admin", policy => policy.RequireClaim("RolePolicy", new[] { "Admin" }));
     options.AddPolicy("User", policy => policy.RequireClaim("RolePolicy", new[] { "User" }));
+    options.AddPolicy("AdminOrUser", policy => policy.RequireClaim("RolePolicy", new[] { "User", "Admin" }));
 });
 
 var app = builder.Build();

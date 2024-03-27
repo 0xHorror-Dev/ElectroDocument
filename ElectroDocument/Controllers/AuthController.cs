@@ -30,6 +30,8 @@ namespace ElectroDocument.Controllers
         {
             if (data.IsValid)
             {
+                data.Password = Utils.sha256(data.Password);
+
                 Employee? employee = await userService.GetEmployeeAsync(data);
                 if (employee is null) return Results.Unauthorized();
                 
@@ -41,7 +43,7 @@ namespace ElectroDocument.Controllers
                 List<Claim> claims = new List<Claim> { 
                     new Claim(ClaimTypes.Name, data.Username), 
                     new Claim(ClaimTypes.NameIdentifier, employee.Id.ToString()), 
-                    new Claim("RolePolicy", "User") 
+                    new Claim("RolePolicy", employee.Policy) 
                 };
 
                 JwtSecurityToken jwt = new JwtSecurityToken(

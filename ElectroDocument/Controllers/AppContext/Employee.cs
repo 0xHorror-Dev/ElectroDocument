@@ -13,6 +13,8 @@ public partial class Employee
 
     public string? ImageUrl { get; set; }
 
+    public string? Policy { get; set; }
+
     public virtual EmployeeCredential Credentials { get; set; } = null!;
 
     public virtual Individual Individual { get; set; } = null!;

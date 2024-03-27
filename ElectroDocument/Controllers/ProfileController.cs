@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace ElectroDocument.Controllers
 {
-    [Authorize(Policy="User")]
+    [Authorize(Policy= "AdminOrUser")]
     public class ProfileController : Controller
     {
         private UserService userService;

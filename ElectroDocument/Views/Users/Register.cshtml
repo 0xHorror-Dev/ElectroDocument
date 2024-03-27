@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Создание пользователя";
+}
+
+
+<h2>Форма создания сотрудника</h2>
+<form id="employeeForm" action="/Users/Add" onsubmit="return validateForm()" method="post">
+    <div>
+        <label for="Name">Имя <span class="error">*</span></label><br>
+        <input type="text" id="firstName" name="Name" required><br>
+    </div>
+    <div>
+        <label for="Surname">Фамилия <span class="error">*</span></label><br>
+        <input type="text" id="lastName" name="Surname" required><br>
+    </div>
+    <div>
+        <label for="UserName">Логин <span class="error">*</span></label><br>
+        <input type="text" id="login" name="UserName" required><br>
+    </div>
+    <div>
+        <label for="Password">Пароль <span class="error">*</span></label><br>
+        <input type="password" id="password" name="Password" required><br>
+    </div>
+    <div>
+        <label for="Patronymic">Отчество</label><br>
+        <input type="text" id="middleName" name="Patronymic"><br>
+    </div>
+    <div>
+        <label for="PhoneNumber">Номер телефона</label><br>
+        <input type="text" id="phoneNumber" name="PhoneNumber"><br>
+    </div>
+    <div>
+        <label for="Address">Адрес проживания</label><br>
+        <input type="text" id="address" name="Address"><br>
+    </div>
+    <div>
+        <label for="Policy">Уровень доступа <span class="error">*</span></label><br>
+        <select id="accessLevel" name="Policy" required>
+            <option value="">Выберите уровень доступа</option>
+            <option value="User">Пользователь</option>
+            <option value="Admin">Администратор</option>
+        </select><br>
+    </div>
+    <div>
+        <input type="submit" value="Создать">
+    </div>
+</form>
+
+<script>
+    function validateForm() {
+        var firstName = document.getElementById("firstName").value;
+        var lastName = document.getElementById("lastName").value;
+        var login = document.getElementById("login").value;
+        var password = document.getElementById("password").value;
+        var accessLevel = document.getElementById("accessLevel").value;
+
+        var errorMessages = [];
+
+        if (!firstName.trim()) {
+            errorMessages.push("Введите имя.");
+        }
+        if (!lastName.trim()) {
+            errorMessages.push("Введите фамилию.");
+        }
+        if (!login.trim()) {
+            errorMessages.push("Введите логин.");
+        }
+        if (!password.trim()) {
+            errorMessages.push("Введите пароль.");
+        }
+        if (!accessLevel.trim()) {
+            errorMessages.push("Выберите уровень доступа.");
+        }
+
+        if (errorMessages.length > 0) {
+            alert(errorMessages.join("\n"));
+            return false;
+        }
+
+        return true;
+    }
+</script>

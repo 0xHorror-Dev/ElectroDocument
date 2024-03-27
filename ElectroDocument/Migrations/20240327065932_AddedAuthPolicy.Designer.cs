@@ -2,6 +2,7 @@
 using ElectroDocument.Controllers.AppContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ElectroDocument.Migrations
 {
     [DbContext(typeof(ElectroDocumentContext))]
-    partial class ElectroDocumentContextModelSnapshot : ModelSnapshot
+    [Migration("20240327065932_AddedAuthPolicy")]
+    partial class AddedAuthPolicy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
