@@ -5,7 +5,7 @@
     string Surname = Model.Surname;
     string? Patronymic = Model.Patronymic;
     string ImageUrl = Model.ImageUrl;
-    string? passwordError = Model.PasswordError;
+    long id = Model.Id;
 }
 
 <body>
@@ -15,20 +15,24 @@
         <!-- Additional profile information can be added here -->
     </div>
 
-    <form method="post" enctype="multipart/form-data" action="/Profile/ChangeProfilePicture">
+    <form method="post" enctype="multipart/form-data" action="@GetActionUrl()">
         <input type="file" name="profilePicture" accept="image/*">
+        <input type="hidden" id="id" name="id" value="@id">
         <button type="submit">Change Profile Picture</button>
     </form>
 
-    <form method="post" action="/Profile/ChangePassword">
+    <form method="post" action="/Profile/AdminChangePassword">
         <input type="password" name="currentPassword" placeholder="Current Password" required>
         <input type="password" name="newPassword" placeholder="New Password" required>
-        @if (passwordError is not null)
-        {
-            <p>
-                Ошибка
-            </p>
-        }
+        <input type="password" name="confirmNewPassword" placeholder="Confirm New Password" required>
         <button type="submit">Change Password</button>
     </form>
 </body>
+
+@{
+    string GetActionUrl()
+    {
+        // Assuming you want to navigate to /Profile/AdminChangeProfilePicture/{Id}
+        return $"/Profile/AdminChangeProfilePicture";
+    }
+}

@@ -13,9 +13,11 @@ namespace ElectroDocument.Controllers
     public class UsersController : Controller
     {
         UserService service;
+        IWebHostEnvironment hostingEnvironment;
 
-        public UsersController(UserService service)
+        public UsersController(UserService service, IWebHostEnvironment hostingEnvironment)
         {
+            this.hostingEnvironment = hostingEnvironment;
             this.service = service;
         }
 
@@ -38,7 +40,32 @@ namespace ElectroDocument.Controllers
         async public Task<ActionResult> Add([FromForm] UsersUserModel model)
         {
             model.Password= Utils.sha256(model.Password);
-            service.RegisterUser(model);
+            long id = service.RegisterUser(model);
+
+            if (Request.Form.Files.Count > 0)
+            {
+                var dir = $"{hostingEnvironment.WebRootPath}/UsersImages";
+                var path = Path.Combine(dir, id.ToString() + ".jpg");
+                var uploadedFile = Request.Form.Files[0];
+
+                // Check if the file is an image
+                if (uploadedFile.ContentType.StartsWith("image/"))
+                {
+                    // Process the image
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await uploadedFile.CopyToAsync(memoryStream);
+                        byte[] imageData = memoryStream.ToArray();
+
+                        // Here you can save the image, process it further, or return it as needed
+                        Console.WriteLine();
+                        System.IO.File.WriteAllBytes(path, imageData);
+
+                        //return File(imageData, uploadedFile.ContentType);
+                    }
+                }
+            }
+
 
             return RedirectToAction("Users");
         }

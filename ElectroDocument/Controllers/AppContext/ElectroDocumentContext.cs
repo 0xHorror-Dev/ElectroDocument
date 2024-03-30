@@ -16,9 +16,13 @@ public partial class ElectroDocumentContext : DbContext
     {
     }
 
+    public virtual DbSet<Doc> Docs { get; set; }
+
     public virtual DbSet<Employee> Employees { get; set; }
 
     public virtual DbSet<EmployeeCredential> EmployeeCredentials { get; set; }
+
+    public virtual DbSet<History> Histories { get; set; }
 
     public virtual DbSet<Individual> Individuals { get; set; }
 
@@ -31,6 +35,20 @@ public partial class ElectroDocumentContext : DbContext
         modelBuilder
             .UseCollation("utf8mb4_general_ci")
             .HasCharSet("utf8mb4");
+
+        modelBuilder.Entity<Doc>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.Property(e => e.Id).HasColumnType("bigint(20)");
+            entity.Property(e => e.DescFirst)
+                .HasMaxLength(250)
+                .HasColumnName("descFirst");
+            entity.Property(e => e.DescSecond)
+                .HasMaxLength(250)
+                .HasColumnName("descSecond");
+            entity.Property(e => e.Type).HasColumnType("tinyint(4)");
+        });
 
         modelBuilder.Entity<Employee>(entity =>
         {
@@ -45,7 +63,9 @@ public partial class ElectroDocumentContext : DbContext
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
             entity.Property(e => e.CredentialsId).HasColumnType("bigint(20)");
             entity.Property(e => e.IndividualId).HasColumnType("bigint(20)");
-            entity.Property(e => e.Policy).HasMaxLength(250);
+            entity.Property(e => e.Policy)
+                .HasMaxLength(250)
+                .HasDefaultValueSql("'User'");
 
             entity.HasOne(d => d.Credentials).WithMany(p => p.Employees)
                 .HasForeignKey(d => d.CredentialsId)
@@ -61,6 +81,43 @@ public partial class ElectroDocumentContext : DbContext
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
+        });
+
+        modelBuilder.Entity<History>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("History");
+
+            entity.HasIndex(e => e.Document, "FK1_History_Document");
+
+            entity.HasIndex(e => e.Owner, "FK2_History_Owner");
+
+            entity.HasIndex(e => e.Employee, "FK3_History_Employee");
+
+            entity.Property(e => e.Id).HasColumnType("bigint(20)");
+            entity.Property(e => e.Desc)
+                .HasMaxLength(250)
+                .HasDefaultValueSql("'0'");
+            entity.Property(e => e.Document)
+                .HasDefaultValueSql("'0'")
+                .HasColumnType("bigint(20)");
+            entity.Property(e => e.Employee).HasColumnType("bigint(20)");
+            entity.Property(e => e.Owner).HasColumnType("bigint(20)");
+
+            entity.HasOne(d => d.DocumentNavigation).WithMany(p => p.Histories)
+                .HasForeignKey(d => d.Document)
+                .HasConstraintName("FK1_History_Document");
+
+            entity.HasOne(d => d.EmployeeNavigation).WithMany(p => p.HistoryEmployeeNavigations)
+                .HasForeignKey(d => d.Employee)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK3_History_Employee");
+
+            entity.HasOne(d => d.OwnerNavigation).WithMany(p => p.HistoryOwnerNavigations)
+                .HasForeignKey(d => d.Owner)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK2_History_Owner");
         });
 
         modelBuilder.Entity<Individual>(entity =>

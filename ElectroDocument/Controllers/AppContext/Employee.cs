@@ -13,9 +13,13 @@ public partial class Employee
 
     public string? ImageUrl { get; set; }
 
-    public string? Policy { get; set; }
+    public string Policy { get; set; } = null!;
 
     public virtual EmployeeCredential Credentials { get; set; } = null!;
+
+    public virtual ICollection<History> HistoryEmployeeNavigations { get; set; } = new List<History>();
+
+    public virtual ICollection<History> HistoryOwnerNavigations { get; set; } = new List<History>();
 
     public virtual Individual Individual { get; set; } = null!;
 }

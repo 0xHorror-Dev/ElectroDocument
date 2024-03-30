@@ -1,0 +1,65 @@
+﻿@{
+	ViewData["Title"] = "Авторизация";
+	DateTime Date = Model.Date;
+}
+
+<table>
+	<th colspan="33" align="center">
+		табель
+	</th>
+	<tr>
+		<td rowspan="2">
+			ФИО
+		</td>
+		<td rowspan="2">Должность</td>
+		@{
+			int maxDays = DateTime.DaysInMonth(Date.Year, Date.Month);
+			for(int i = 1; i < maxDays + 1; i++)
+			{
+				<td>@i.ToString()</td>
+			}
+		}
+		<td class="all_hours" rowspan="2">всего часов</td>
+	</tr>
+	<tr>
+
+	@{
+		for (int i = 1; i < maxDays + 1; i++)
+		{
+			<td>@GetRuDayOfWeek(new DateTime(Date.Year, Date.Month, i))</td>
+		}
+	}
+	</tr>
+
+
+	<tr>
+		<td>Вася Данил</td>
+	</tr>
+</table>
+
+@{
+	string GetRuDayOfWeek(DateTime time)
+	{
+		string res = "NULL";
+
+		switch (time.DayOfWeek)
+		{
+			case DayOfWeek.Monday:
+				return "Пн";
+			case DayOfWeek.Tuesday:
+				return "Вт";
+			case DayOfWeek.Wednesday:
+				return "Ср";
+			case DayOfWeek.Thursday:
+				return "Чт";
+			case DayOfWeek.Friday:
+				return "Пт";
+			case DayOfWeek.Saturday:
+				return "Сб";
+			case DayOfWeek.Sunday:
+				return "Вс";
+		}
+
+		return res;
+	}
+}

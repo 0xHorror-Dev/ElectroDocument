@@ -2,6 +2,7 @@
 using ElectroDocument.Models;
 using ElectroDocument.Models.Cached;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -26,6 +27,28 @@ namespace ElectroDocument.Controllers.Services
             db.EmployeeCredentials.Load();
             db.Individuals.Load();
             return await db.Employees.FindAsync(Convert.ToInt64(id));
+        }
+
+        public async Task<long> GetEmployeeId(string Username)
+        {
+            await db.Employees.LoadAsync();
+            await db.EmployeeCredentials.LoadAsync();
+            return db.Employees.Where(emp => emp.Credentials.UserName == Username).First().Id;
+        }
+
+        public async Task<bool> UpdatePassword(long id, string currentPassword, string newPassword)
+        {
+            await db.Employees.LoadAsync();
+            await db.EmployeeCredentials.LoadAsync();
+            Employee emp = await db.Employees.FindAsync(id);
+
+            if (emp.Credentials.Password == currentPassword)
+            {
+                emp.Credentials.Password = newPassword;
+                db.SaveChanges();
+                return true;
+            }
+            else return false;
         }
 
         public async Task<Employee?> GetEmployeeAsync(LoginData data)
@@ -62,7 +85,7 @@ namespace ElectroDocument.Controllers.Services
             return employee;
         }
 
-        public void RegisterUser(UsersUserModel usersModel)
+        public long RegisterUser(UsersUserModel usersModel)
         {
             try
             {
@@ -72,12 +95,15 @@ namespace ElectroDocument.Controllers.Services
                 db.Employees.Add(emp);
 
                 db.SaveChanges();
+                return emp.Id;
             }
             catch (Exception ex)
             {
                 // Handle or log the exception
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
+
+            return 0;
         }
 
 
