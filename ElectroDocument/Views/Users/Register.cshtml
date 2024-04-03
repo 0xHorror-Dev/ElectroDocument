@@ -1,5 +1,10 @@
-﻿@{
+﻿@using ElectroDocument.Controllers.AppContext;
+@using Microsoft.EntityFrameworkCore.Metadata;
+@using System.Collections;
+
+@{
     ViewData["Title"] = "Создание пользователя";
+    IEnumerable<Role> roles = Model.roles;
 }
 
 
@@ -34,11 +39,13 @@
         <input type="text" id="address" name="Address"><br>
     </div>
     <div>
-        <label for="Policy">Уровень доступа <span class="error">*</span></label><br>
-        <select id="accessLevel" name="Policy" required>
-            <option value="">Выберите уровень доступа</option>
-            <option value="User">Пользователь</option>
-            <option value="Admin">Администратор</option>
+        <label for="Role">Уровень доступа <span class="error">*</span></label><br>
+        <select id="Role" name="Role" required>
+            <option value="">Выберите должность</option>
+            @foreach(Role r in roles)
+            {
+                <option value="@r.Id">@r.Title</option>
+            }
         </select><br>
     </div>
     <label for="Image">Изображение</label><br>
@@ -54,7 +61,7 @@
         var lastName = document.getElementById("lastName").value;
         var login = document.getElementById("login").value;
         var password = document.getElementById("password").value;
-        var accessLevel = document.getElementById("accessLevel").value;
+        var role = document.getElementById("role").value;
 
         var errorMessages = [];
 
@@ -70,7 +77,7 @@
         if (!password.trim()) {
             errorMessages.push("Введите пароль.");
         }
-        if (!accessLevel.trim()) {
+        if (!role.trim()) {
             errorMessages.push("Выберите уровень доступа.");
         }
 

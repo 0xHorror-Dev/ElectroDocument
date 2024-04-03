@@ -1,6 +1,7 @@
 ﻿@{
 	ViewData["Title"] = "Авторизация";
 	DateTime Date = Model.Date;
+	List<TabelEmployee>? tabel = Model.tabel;
 }
 
 <table>
@@ -33,7 +34,18 @@
 
 
 	<tr>
-		<td>Вася Данил</td>
+	
+		@{
+			foreach(TabelEmployee emp in tabel)
+			{
+				<td>@emp.FullName</td>
+				<td>@emp.JobTitle</td>
+				foreach(TabelMark mark in emp.tabelMarks)
+				{
+					<td onclick="alert("@mark.Mark = @mark.Id")">@mark.Mark</td>
+				}
+			}
+		}
 	</tr>
 </table>
 

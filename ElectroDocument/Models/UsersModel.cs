@@ -7,7 +7,7 @@ namespace ElectroDocument.Models
         public string Address{ get; set; }
         public string PhoneNumber{ get; set; }
 
-        public string Policy { get; set; }
+        public long Role{ get; set; }
 
         public string UserName { get; set; }
         public string Password { get; set; }

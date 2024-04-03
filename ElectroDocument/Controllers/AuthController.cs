@@ -43,7 +43,7 @@ namespace ElectroDocument.Controllers
                 List<Claim> claims = new List<Claim> { 
                     new Claim(ClaimTypes.Name, data.Username), 
                     new Claim(ClaimTypes.NameIdentifier, employee.Id.ToString()), 
-                    new Claim("RolePolicy", employee.Policy) 
+                    new Claim("RolePolicy", employee.Role.AccessLevel) 
                 };
 
                 JwtSecurityToken jwt = new JwtSecurityToken(

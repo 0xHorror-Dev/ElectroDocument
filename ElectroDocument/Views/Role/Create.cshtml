@@ -1,0 +1,109 @@
+﻿@{
+    ViewData["Title"] = "Электронный документооборот";
+}
+
+<style>
+    form {
+        margin: 20px;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+    input[type="text"], select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+    }
+    input[type="submit"] {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+    }
+    input[type="submit"]:hover {
+        background-color: #45a049;
+    }
+    .message {
+        margin-top: 10px;
+        padding: 10px;
+    }
+    .success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+
+<h2>Форма добавления должности</h2>
+
+<form id="addPositionForm">
+    <label for="positionName">Название должности:</label>
+    <input type="text" id="positionName" name="positionName" required>
+
+    <label for="accessLevel">Уровень доступа:</label>
+    <select id="accessLevel" name="accessLevel" required>
+        <option value="User">Пользователь</option>
+        <option value="Admin">Администратор</option>
+    </select>
+
+    <input type="submit" value="Добавить должность">
+</form>
+
+<div id="message" class="message" style="display: none;"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("addPositionForm");
+        const messageDiv = document.getElementById("message");
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const positionName = form.elements["positionName"].value;
+            const accessLevel = form.elements["accessLevel"].value;
+
+            // Пример проверки данных (здесь просто проверяем, чтобы название должности не было пустым)
+            if (positionName.trim() === "") {
+                showMessage("error", "Пожалуйста, введите название должности.");
+            } else {
+                try {
+                    let response = await fetch("/Role/Add", {
+                        method: "POST",
+                        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            Title: positionName,
+                            AccessLevel: accessLevel 
+                        })
+                    });
+
+                    console.log(response);
+
+                    if (response.ok === true) {
+                        showMessage("success", "Должность успешно добавлена: " + positionName + ", уровень доступа: " + accessLevel);
+                        // Здесь можно добавить код для отправки данных на сервер или другую обработку
+                        form.reset(); // Очистка формы после успешной отправки
+                    }
+                    else {
+                        showMessage("error", response.statusText);
+                    }
+                } catch (error) {
+                    showMessage("error", "Произошла ошибка: " + error.message);
+                }
+            }
+        });
+
+        function showMessage(type, text) {
+            messageDiv.textContent = text;
+            messageDiv.className = "message " + type;
+            messageDiv.style.display = "block";
+            // Скрыть сообщение через 5 секунд
+            setTimeout(function () {
+                messageDiv.style.display = "none";
+            }, 5000);
+        }
+    });
+</script>

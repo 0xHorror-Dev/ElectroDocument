@@ -3,6 +3,7 @@ using System;
 using ElectroDocument.Controllers.AppContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ElectroDocument.Migrations
 {
     [DbContext(typeof(ElectroDocumentContext))]
-    partial class ElectroDocumentContextModelSnapshot : ModelSnapshot
+    [Migration("20240331091340_AddedRoles")]
+    partial class AddedRoles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,13 +71,15 @@ namespace ElectroDocument.Migrations
                     b.Property<long>("IndividualId")
                         .HasColumnType("bigint(20)");
 
-                    b.Property<long>("RoleId")
-                        .HasColumnType("bigint(20)");
+                    b.Property<string>("Policy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(250)
+                        .HasColumnType("varchar(250)")
+                        .HasDefaultValueSql("'User'");
 
                     b.HasKey("Id")
                         .HasName("PRIMARY");
-
-                    b.HasIndex(new[] { "RoleId" }, "FK_Employee_Role");
 
                     b.HasIndex(new[] { "IndividualId" }, "FK_Users_Individual_InvidividualId");
 
@@ -183,29 +188,6 @@ namespace ElectroDocument.Migrations
                     b.ToTable("Individual", (string)null);
                 });
 
-            modelBuilder.Entity("ElectroDocument.Controllers.AppContext.Role", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint(20)");
-
-                    b.Property<string>("AccessLevel")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValueSql("'User'");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("varchar(250)");
-
-                    b.HasKey("Id")
-                        .HasName("PRIMARY");
-
-                    b.ToTable("Role", (string)null);
-                });
-
             modelBuilder.Entity("ElectroDocument.Controllers.AppContext.Employee", b =>
                 {
                     b.HasOne("ElectroDocument.Controllers.AppContext.EmployeeCredential", "Credentials")
@@ -222,18 +204,9 @@ namespace ElectroDocument.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Users_Individual_InvidividualId");
 
-                    b.HasOne("ElectroDocument.Controllers.AppContext.Role", "Role")
-                        .WithMany("Employees")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Employee_Role");
-
                     b.Navigation("Credentials");
 
                     b.Navigation("Individual");
-
-                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("ElectroDocument.Controllers.AppContext.History", b =>
@@ -280,11 +253,6 @@ namespace ElectroDocument.Migrations
                 });
 
             modelBuilder.Entity("ElectroDocument.Controllers.AppContext.Individual", b =>
-                {
-                    b.Navigation("Employees");
-                });
-
-            modelBuilder.Entity("ElectroDocument.Controllers.AppContext.Role", b =>
                 {
                     b.Navigation("Employees");
                 });

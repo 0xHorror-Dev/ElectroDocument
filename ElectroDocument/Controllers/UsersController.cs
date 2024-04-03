@@ -14,17 +14,19 @@ namespace ElectroDocument.Controllers
     {
         UserService service;
         IWebHostEnvironment hostingEnvironment;
+        RoleService roleService;
 
-        public UsersController(UserService service, IWebHostEnvironment hostingEnvironment)
+        public UsersController(UserService service, IWebHostEnvironment hostingEnvironment, RoleService roleService)
         {
             this.hostingEnvironment = hostingEnvironment;
             this.service = service;
+            this.roleService=roleService;
         }
 
 
         async public Task<ActionResult> Register()
         {
-            return View();
+            return View(new { roles = await roleService.GetRolesAsync()});
         }
 
         async public Task<ActionResult> Index()

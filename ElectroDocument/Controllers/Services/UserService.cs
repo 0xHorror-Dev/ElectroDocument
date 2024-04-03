@@ -60,6 +60,7 @@ namespace ElectroDocument.Controllers.Services
             {
                 await db.Employees.LoadAsync();
                 await db.EmployeeCredentials.LoadAsync();
+                await db.Roles.LoadAsync();
 
                 employee = await db.Employees.Where(employee => employee.Credentials.UserName == data.Username && employee.Credentials.Password == data.Password).FirstAsync();
 
@@ -89,7 +90,7 @@ namespace ElectroDocument.Controllers.Services
         {
             try
             {
-                Employee emp = new Employee() { Policy = usersModel.Policy };
+                Employee emp = new Employee() { RoleId = usersModel.Role};
                 emp.Individual = new Individual { Address = usersModel.Address, Name = usersModel.Name, Patronymic = usersModel.Patronymic, PhoneNumber = usersModel.PhoneNumber };
                 emp.Credentials = new EmployeeCredential { Password = usersModel.Password, UserName = usersModel.UserName };
                 db.Employees.Add(emp);
@@ -105,7 +106,6 @@ namespace ElectroDocument.Controllers.Services
 
             return 0;
         }
-
 
         public async Task<IEnumerable<Employee?>> GetEmployees()
         {

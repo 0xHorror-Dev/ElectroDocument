@@ -26,6 +26,8 @@ public partial class ElectroDocumentContext : DbContext
 
     public virtual DbSet<Individual> Individuals { get; set; }
 
+    public virtual DbSet<Role> Roles { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseMySql("server=192.168.0.225;database=ElectroDocument;uid=ElectroDocument;pwd=ElDocsas2", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.6-mariadb"));
@@ -56,6 +58,8 @@ public partial class ElectroDocumentContext : DbContext
 
             entity.ToTable("Employee");
 
+            entity.HasIndex(e => e.RoleId, "FK_Employee_Role");
+
             entity.HasIndex(e => e.IndividualId, "FK_Users_Individual_InvidividualId");
 
             entity.HasIndex(e => e.CredentialsId, "IX_Users_CredentialsId");
@@ -63,9 +67,7 @@ public partial class ElectroDocumentContext : DbContext
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
             entity.Property(e => e.CredentialsId).HasColumnType("bigint(20)");
             entity.Property(e => e.IndividualId).HasColumnType("bigint(20)");
-            entity.Property(e => e.Policy)
-                .HasMaxLength(250)
-                .HasDefaultValueSql("'User'");
+            entity.Property(e => e.RoleId).HasColumnType("bigint(20)");
 
             entity.HasOne(d => d.Credentials).WithMany(p => p.Employees)
                 .HasForeignKey(d => d.CredentialsId)
@@ -74,6 +76,10 @@ public partial class ElectroDocumentContext : DbContext
             entity.HasOne(d => d.Individual).WithMany(p => p.Employees)
                 .HasForeignKey(d => d.IndividualId)
                 .HasConstraintName("FK_Users_Individual_InvidividualId");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.Employees)
+                .HasForeignKey(d => d.RoleId)
+                .HasConstraintName("FK_Employee_Role");
         });
 
         modelBuilder.Entity<EmployeeCredential>(entity =>
@@ -138,6 +144,19 @@ public partial class ElectroDocumentContext : DbContext
             entity.Property(e => e.Surname)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("''");
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("Role");
+
+            entity.Property(e => e.Id).HasColumnType("bigint(20)");
+            entity.Property(e => e.AccessLevel)
+                .HasDefaultValueSql("'User'")
+                .HasColumnType("text");
+            entity.Property(e => e.Title).HasMaxLength(250);
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -11,9 +11,9 @@ public partial class Employee
 
     public long IndividualId { get; set; }
 
-    public string? ImageUrl { get; set; }
+    public long RoleId { get; set; }
 
-    public string Policy { get; set; } = null!;
+    public string? ImageUrl { get; set; }
 
     public virtual EmployeeCredential Credentials { get; set; } = null!;
 
@@ -22,4 +22,6 @@ public partial class Employee
     public virtual ICollection<History> HistoryOwnerNavigations { get; set; } = new List<History>();
 
     public virtual Individual Individual { get; set; } = null!;
+
+    public virtual Role Role { get; set; } = null!;
 }
