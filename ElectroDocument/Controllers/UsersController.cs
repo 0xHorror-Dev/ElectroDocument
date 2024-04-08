@@ -4,7 +4,9 @@ using ElectroDocument.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using System.Security;
+using System.Text.RegularExpressions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ElectroDocument.Controllers
@@ -29,10 +31,24 @@ namespace ElectroDocument.Controllers
             return View(new { roles = await roleService.GetRolesAsync()});
         }
 
-        async public Task<ActionResult> Index()
+        async public Task<ActionResult> Index(string? searchby)
         {
             IEnumerable<Employee?> emps = await service.GetEmployees();
             UsersModel model = new UsersModel();
+
+            emps = emps.OrderBy(emp => emp.Individual.Surname);
+
+            if(searchby is not null)
+            {
+                searchby = searchby.ToLower();
+                emps = emps.Where(emp =>
+                {
+                    string fullname = $"{emp.Individual.Surname} {emp.Individual.Name} {emp.Individual.Patronymic}".ToLower();
+
+                    return fullname.IndexOf(searchby, 0) != -1;
+                });
+            }
+
             model.profiles = emps;
 
             return View(model);
@@ -42,7 +58,7 @@ namespace ElectroDocument.Controllers
         async public Task<ActionResult> Add([FromForm] UsersUserModel model)
         {
             model.Password= Utils.sha256(model.Password);
-            long id = service.RegisterUser(model);
+            long id = await service.RegisterUser(model);
 
             if (Request.Form.Files.Count > 0)
             {
@@ -74,3 +90,4 @@ namespace ElectroDocument.Controllers
 
     }
 }
+

@@ -41,7 +41,8 @@
         <th>Адресс прописки</th>
         <th>Номер телефона</th>
     </tr>
-
+    <input type="text" id="inputField" placeholder="ФИО сотрудника">
+    <button onclick="filter()">Отфильтровать</button>
     @foreach(Employee? emp in Model.profiles)
     {
         @if(emp is not null)
@@ -59,3 +60,11 @@
     }
 
 </table>
+
+<script>
+    function filter() 
+    {
+        var inputValue = document.getElementById("inputField").value;
+        window.location.href = `/Users?searchby=${inputValue}`;
+    }
+</script>

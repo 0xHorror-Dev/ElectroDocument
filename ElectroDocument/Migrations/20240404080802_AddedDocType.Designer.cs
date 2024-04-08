@@ -3,6 +3,7 @@ using System;
 using ElectroDocument.Controllers.AppContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ElectroDocument.Migrations
 {
     [DbContext(typeof(ElectroDocumentContext))]
-    partial class ElectroDocumentContextModelSnapshot : ModelSnapshot
+    [Migration("20240404080802_AddedDocType")]
+    partial class AddedDocType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,9 +41,6 @@ namespace ElectroDocument.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Desc")
-                        .HasColumnType("text");
-
-                    b.Property<string>("DescSecond")
                         .HasColumnType("text");
 
                     b.Property<sbyte?>("DocType")

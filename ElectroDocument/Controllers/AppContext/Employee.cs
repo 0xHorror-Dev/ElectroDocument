@@ -17,9 +17,7 @@ public partial class Employee
 
     public virtual EmployeeCredential Credentials { get; set; } = null!;
 
-    public virtual ICollection<History> HistoryEmployeeNavigations { get; set; } = new List<History>();
-
-    public virtual ICollection<History> HistoryOwnerNavigations { get; set; } = new List<History>();
+    public virtual ICollection<Doc> Docs { get; set; } = new List<Doc>();
 
     public virtual Individual Individual { get; set; } = null!;
 

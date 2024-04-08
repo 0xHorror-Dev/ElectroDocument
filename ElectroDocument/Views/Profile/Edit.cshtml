@@ -15,6 +15,10 @@
         <!-- Additional profile information can be added here -->
     </div>
 
+    <div>
+        <a href="/Docs?id=@id">Документы</a>
+    </div>
+
     <form method="post" enctype="multipart/form-data" action="@GetActionUrl()">
         <input type="file" name="profilePicture" accept="image/*">
         <input type="hidden" id="id" name="id" value="@id">
@@ -27,6 +31,7 @@
         <input type="password" name="confirmNewPassword" placeholder="Confirm New Password" required>
         <button type="submit">Change Password</button>
     </form>
+    <a href="/Docs/EmployeeContract?id=@id">Сформировать трудовой договор</a>
 </body>
 
 @{

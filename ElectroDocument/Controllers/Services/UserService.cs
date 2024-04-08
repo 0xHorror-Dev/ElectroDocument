@@ -1,12 +1,13 @@
 ﻿using ElectroDocument.Controllers.AppContext;
 using ElectroDocument.Models;
 using ElectroDocument.Models.Cached;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ElectroDocument.Controllers.Services
 {
@@ -26,6 +27,7 @@ namespace ElectroDocument.Controllers.Services
         {
             db.EmployeeCredentials.Load();
             db.Individuals.Load();
+            db.Roles.Load();
             return await db.Employees.FindAsync(Convert.ToInt64(id));
         }
 
@@ -86,17 +88,26 @@ namespace ElectroDocument.Controllers.Services
             return employee;
         }
 
-        public long RegisterUser(UsersUserModel usersModel)
+        public string GetRoleTitleById(long id)
+        {
+            return db.Roles.Find(id).Title;
+        }
+
+        public async Task<long> RegisterUser(UsersUserModel usersModel)
         {
             try
             {
                 Employee emp = new Employee() { RoleId = usersModel.Role};
-                emp.Individual = new Individual { Address = usersModel.Address, Name = usersModel.Name, Patronymic = usersModel.Patronymic, PhoneNumber = usersModel.PhoneNumber };
+                emp.Individual = new Individual { Address = usersModel.Address, Name = usersModel.Name, Patronymic = usersModel.Patronymic, PhoneNumber = usersModel.PhoneNumber, Surname = usersModel.Surname };
                 emp.Credentials = new EmployeeCredential { Password = usersModel.Password, UserName = usersModel.UserName };
                 db.Employees.Add(emp);
-
-                db.SaveChanges();
-                return emp.Id;
+                var task = db.SaveChangesAsync();
+                task.Wait();
+                db.Employees.Load();
+                db.EmployeeCredentials.Load();
+                long empId = db.Employees.Where(emp=>emp.Credentials.UserName ==  usersModel.UserName).First().Id;
+                await db.SaveChangesAsync();
+                return empId;
             }
             catch (Exception ex)
             {

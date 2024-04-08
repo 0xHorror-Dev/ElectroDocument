@@ -104,7 +104,7 @@ namespace ElectroDocument.Controllers
             return Redirect("/Profile?PasswordError=Error");
         }
 
-       [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<ActionResult> AdminChangeProfilePicture([FromForm]long id)
         {

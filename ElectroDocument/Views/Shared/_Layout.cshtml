@@ -1,5 +1,7 @@
-﻿
-@using Microsoft.AspNetCore.Authorization
+﻿@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+
 @inject IAuthorizationService AuthorizationService
 
 <!DOCTYPE html>
@@ -11,6 +13,14 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ElectroDocument.styles.css" asp-append-version="true" />
+    <style>
+        .nav-item-photo
+        {
+            max-width: 128px;
+            max-height: 128px;
+            border-radius: 50%;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -35,7 +45,7 @@
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Index">Пользователи</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="History" asp-action="Index">История</a>
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Docs" asp-action="Index">Мои документы</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Role" asp-action="Index">Должности</a>
@@ -43,9 +53,6 @@
                             }
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Profile" asp-action="Index">Профиль</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Logout">Выйти</a>
                             </li>
                         }
                         else
@@ -58,6 +65,20 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Приватность</a>
                         </li>
                     </ul>
+                    @if (@Context.User.Identity.IsAuthenticated)
+                    {
+                        var userClaims = User.Claims;
+                        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                        <ul class="navbar-nav ml-auto">
+                            <li class="nav-item">
+                                <span class="nav-link text-dark">@Context.User.Identity.Name</span> <!-- ФИО пользователя -->
+                            </li>
+
+                            <li class="nav-item">
+                                <img src="/Profile/Image/@userId" alt="User Photo" class="nav-item-photo"> <!-- Фотография пользователя -->
+                            </li>
+                        </ul>
+                    }
                 </div>
             </div>
         </nav>

@@ -7,15 +7,27 @@ public partial class Doc
 {
     public long Id { get; set; }
 
-    public sbyte? Type { get; set; }
+    public long Number { get; set; }
 
-    public DateOnly? FirstDay { get; set; }
+    public sbyte? DocType { get; set; }
 
-    public DateOnly? SecondDay { get; set; }
+    public DateOnly Date { get; set; }
 
-    public string? DescFirst { get; set; }
+    public DateOnly? DateSecond { get; set; }
+
+    public DateOnly? DateThird { get; set; }
+
+    public long? EmployeeId { get; set; }
+
+    public string? Reason { get; set; }
+
+    public string? Desc { get; set; }
 
     public string? DescSecond { get; set; }
 
-    public virtual ICollection<History> Histories { get; set; } = new List<History>();
+    public int? Sum { get; set; }
+
+    public string? Title { get; set; }
+
+    public virtual Employee? Employee { get; set; }
 }

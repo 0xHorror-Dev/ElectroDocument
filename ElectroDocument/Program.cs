@@ -16,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ElectroDocumentContext>();
 builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<RoleService>();
+builder.Services.AddTransient<DocsService>();
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {

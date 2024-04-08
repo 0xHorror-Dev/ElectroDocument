@@ -3,6 +3,7 @@ using System;
 using ElectroDocument.Controllers.AppContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ElectroDocument.Migrations
 {
     [DbContext(typeof(ElectroDocumentContext))]
-    partial class ElectroDocumentContextModelSnapshot : ModelSnapshot
+    [Migration("20240403115216_UpdatedDocs")]
+    partial class UpdatedDocs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,12 +43,6 @@ namespace ElectroDocument.Migrations
                     b.Property<string>("Desc")
                         .HasColumnType("text");
 
-                    b.Property<string>("DescSecond")
-                        .HasColumnType("text");
-
-                    b.Property<sbyte?>("DocType")
-                        .HasColumnType("tinyint(4)");
-
                     b.Property<long?>("EmployeeId")
                         .HasColumnType("bigint(20)");
 
@@ -57,10 +54,6 @@ namespace ElectroDocument.Migrations
 
                     b.Property<int?>("Sum")
                         .HasColumnType("int(11)");
-
-                    b.Property<string>("Title")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id")
                         .HasName("PRIMARY");

@@ -22,8 +22,6 @@ public partial class ElectroDocumentContext : DbContext
 
     public virtual DbSet<EmployeeCredential> EmployeeCredentials { get; set; }
 
-    public virtual DbSet<History> Histories { get; set; }
-
     public virtual DbSet<Individual> Individuals { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
@@ -42,14 +40,23 @@ public partial class ElectroDocumentContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
+            entity.HasIndex(e => e.EmployeeId, "FK_DocsNew_Employee");
+
+            entity.HasIndex(e => e.Number, "Number").IsUnique();
+
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
-            entity.Property(e => e.DescFirst)
-                .HasMaxLength(250)
-                .HasColumnName("descFirst");
-            entity.Property(e => e.DescSecond)
-                .HasMaxLength(250)
-                .HasColumnName("descSecond");
-            entity.Property(e => e.Type).HasColumnType("tinyint(4)");
+            entity.Property(e => e.Desc).HasColumnType("text");
+            entity.Property(e => e.DescSecond).HasColumnType("text");
+            entity.Property(e => e.DocType).HasColumnType("tinyint(4)");
+            entity.Property(e => e.EmployeeId).HasColumnType("bigint(20)");
+            entity.Property(e => e.Number).HasColumnType("bigint(20)");
+            entity.Property(e => e.Reason).HasColumnType("text");
+            entity.Property(e => e.Sum).HasColumnType("int(11)");
+            entity.Property(e => e.Title).HasMaxLength(50);
+
+            entity.HasOne(d => d.Employee).WithMany(p => p.Docs)
+                .HasForeignKey(d => d.EmployeeId)
+                .HasConstraintName("FK_DocsNew_Employee");
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -87,43 +94,6 @@ public partial class ElectroDocumentContext : DbContext
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
-        });
-
-        modelBuilder.Entity<History>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-            entity.ToTable("History");
-
-            entity.HasIndex(e => e.Document, "FK1_History_Document");
-
-            entity.HasIndex(e => e.Owner, "FK2_History_Owner");
-
-            entity.HasIndex(e => e.Employee, "FK3_History_Employee");
-
-            entity.Property(e => e.Id).HasColumnType("bigint(20)");
-            entity.Property(e => e.Desc)
-                .HasMaxLength(250)
-                .HasDefaultValueSql("'0'");
-            entity.Property(e => e.Document)
-                .HasDefaultValueSql("'0'")
-                .HasColumnType("bigint(20)");
-            entity.Property(e => e.Employee).HasColumnType("bigint(20)");
-            entity.Property(e => e.Owner).HasColumnType("bigint(20)");
-
-            entity.HasOne(d => d.DocumentNavigation).WithMany(p => p.Histories)
-                .HasForeignKey(d => d.Document)
-                .HasConstraintName("FK1_History_Document");
-
-            entity.HasOne(d => d.EmployeeNavigation).WithMany(p => p.HistoryEmployeeNavigations)
-                .HasForeignKey(d => d.Employee)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK3_History_Employee");
-
-            entity.HasOne(d => d.OwnerNavigation).WithMany(p => p.HistoryOwnerNavigations)
-                .HasForeignKey(d => d.Owner)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK2_History_Owner");
         });
 
         modelBuilder.Entity<Individual>(entity =>
