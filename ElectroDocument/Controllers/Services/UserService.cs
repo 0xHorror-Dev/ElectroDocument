@@ -81,6 +81,7 @@ namespace ElectroDocument.Controllers.Services
                 {
                     await db.Employees.LoadAsync();
                     await db.EmployeeCredentials.LoadAsync();
+                    await db.Roles.LoadAsync();
                     employee = await db.Employees.FindAsync(cachedEmployee.Id);
                 }
             }
@@ -122,6 +123,7 @@ namespace ElectroDocument.Controllers.Services
         {
             await db.Employees.LoadAsync();
             await db.Individuals.LoadAsync();
+            await db.Roles.LoadAsync();
 
             return db.Employees;
         }

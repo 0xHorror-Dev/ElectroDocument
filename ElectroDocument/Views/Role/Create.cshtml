@@ -1,5 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Электронный документооборот";
+    long id = Model.Id;
 }
 
 <style>
@@ -50,6 +51,8 @@
         <option value="User">Пользователь</option>
         <option value="Admin">Администратор</option>
     </select>
+    <a href="/Docs/RoleCreate?id=@id">Сформировать приказ о изменение в штатное расписание</a></br>
+
 
     <input type="submit" value="Добавить должность">
 </form>

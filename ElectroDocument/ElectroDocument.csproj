@@ -23,4 +23,11 @@
     <Folder Include="Controllers\AppContext\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Views\Docs\Moved.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

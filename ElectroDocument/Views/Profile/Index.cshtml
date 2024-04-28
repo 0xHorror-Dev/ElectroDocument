@@ -1,4 +1,5 @@
-﻿@{
+﻿@using ElectroDocument.Controllers.AppContext;
+@{
     ViewData["Title"] = $"Профиль - {Model.FullName}";
     string FullName = Model.FullName;
     string Name = Model.Name;
@@ -6,30 +7,103 @@
     string? Patronymic = Model.Patronymic;
     string ImageUrl = Model.ImageUrl;
     string? passwordError = Model.PasswordError;
+    Role Position = Model.Position;
+    var docs = Model.docs;
 }
 
-<body>
-    <div class="container">
-        <img src="@ImageUrl" alt="Profile Image" class="profile-img">
-        <h1 class="fullname">@FullName</h1>
-        <!-- Additional profile information can be added here -->
-    </div>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
+    table, th, td {
+        border: 1px solid black;
+    }
 
+    th, td {
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+        cursor: pointer;
+    }
+</style>
+
+<div class="container">
+    <img src="@ImageUrl" alt="Profile Image" class="profile-img">
+    <h1 class="fullname">@FullName</h1>
+    <p class="position">Должность: @Position.Title</p>
+</div>
+
+<div class="form-container">
+    <h1>Изменение изображение профиля</h1>
     <form method="post" enctype="multipart/form-data" action="/Profile/ChangeProfilePicture">
         <input type="file" name="profilePicture" accept="image/*">
-        <button type="submit">Change Profile Picture</button>
+        <button type="submit" class="btn-primary">Сменить изображение профиля</button>
     </form>
 
+    <h1>Изменение пароля</h1>
     <form method="post" action="/Profile/ChangePassword">
-        <input type="password" name="currentPassword" placeholder="Current Password" required>
-        <input type="password" name="newPassword" placeholder="New Password" required>
+        <input type="password" name="currentPassword" placeholder="Текущий пароль" required>
+        <input type="password" name="newPassword" placeholder="Новый пароль" required>
         @if (passwordError is not null)
         {
-            <p>
-                Ошибка
-            </p>
+            <p class="error-message">Ошибка: @passwordError</p>
         }
-        <button type="submit">Change Password</button>
+        <button type="submit" class="btn-primary">Изменить пароль</button>
     </form>
-</body>
+    <h1> Документы </h1>
+    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Введите описание">
+
+    <table id="docTable">
+        <thead>
+            <tr>
+                <th>Номер документа</th>
+                <th>Дата</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Doc doc in docs)
+            {
+                <tr onclick="window.location.href='/Docs/GenerateDocument?id=@doc.Id';">
+                    <td>@doc.Number</td>
+                    <td>@doc.Date</td>
+                    <td>@doc.Title</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    function searchTable() {
+        // Declare variables
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("docTable");
+        tr = table.getElementsByTagName("tr");
+
+        // Loop through all table rows, and hide those who don't match the search query
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[2]; // searching only in third column (Описание)
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>

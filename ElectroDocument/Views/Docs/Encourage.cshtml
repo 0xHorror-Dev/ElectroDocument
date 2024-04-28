@@ -1,0 +1,187 @@
+﻿@using ElectroDocument.Controllers.AppContext;
+@{
+    ViewData["Title"] = "Документы - Премирование";
+    var userId = Model.id;
+    var fullname = Model.Fullname;
+    IEnumerable<Role> roles = Model.Roles;
+}
+
+
+
+<style>
+    /* CSS стили остаются прежними */
+
+    .form-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+            .form-group input:focus {
+                outline: none;
+                border-color: #007bff;
+            }
+
+    .btn {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+    .message {
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 4px;
+    }
+
+    .success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+
+    .error {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+
+    .profile-img {
+        max-width: 200px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+    }
+
+    .fullname {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .title {
+        width: 100%;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+        align-content: center;
+    }
+</style>
+
+<div class="form-container">
+    <h1 class="title"> Премирование </h1>
+    <form id="myForm">
+        <div class="form-group">
+            <img src="/Profile/Image/@userId" alt="Profile Image" class="profile-img">
+            <h1 class="fullname"> @fullname </h1>
+
+        </div>
+        <div class="form-group">
+            <label for="Role">Должность:</label>
+            <select id="Role" name="Role" required>
+
+                <option value="">Выберите должность</option>
+                @foreach(Role role in roles)
+                {
+                    <option value="@role.Title">@role.Title</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="salary">Сумма премии:</label>
+            <input type="number" id="salary" name="salary" required>
+        </div>
+        <div class="form-group">
+            <label for="desc">Основание:</label>
+            <input type="text" id="desc" name="desc" required>
+        </div>
+        <div class="form-group">
+            <label for="reason">Причина:</label>
+            <input type="text" id="reason" name="reason" required>
+        </div>
+        <div class="form-group">
+            <label for="docNumber">Номер документа:</label>
+            <input type="number" id="docNumber" name="docNumber" required>
+        </div>
+        <div class="form-group">
+            <label for="date">Дата вступления в силу:</label>
+            <input type="date" id="date" name="date" required>
+        </div>
+        <button type="submit" class="btn">Отправить</button>
+    </form>
+    <div id="message" class="message" style="display: none;"></div>
+</div>
+
+<script>
+    document.getElementById("myForm").addEventListener("submit", function (event) {
+        var salaryInput = document.getElementById("salary").value;
+        var docNumberInput = document.getElementById("docNumber").value;
+
+        if (isNaN(salaryInput) || isNaN(docNumberInput)) {
+            showMessage('error', 'Поля "Зарплата" и "Номер документа" должны содержать числовые значения.');
+            return;
+        }
+        
+        event.preventDefault(); // Предотвращаем отправку формы по умолчанию
+        var form = event.target;
+        var formData = new FormData(form);
+        formData.append("id", `@userId`);
+
+        fetch("/Docs/GenerateEncourage", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error('Ошибка сети');
+                }
+            })
+            .then(data => {
+                showMessage('success', 'Данные успешно отправлены!');
+            })
+            .catch(error => {
+                showMessage('error', 'Ошибка отправки данных: ' + error.message);
+            });
+    });
+
+    function showMessage(type, message) {
+        var messageElement = document.getElementById("message");
+        messageElement.innerHTML = message;
+        messageElement.style.display = "block";
+        messageElement.classList.add(type);
+
+        setTimeout(function () {
+            messageElement.style.display = "none";
+            messageElement.classList.remove(type);
+        }, 5000);
+    }
+</script>

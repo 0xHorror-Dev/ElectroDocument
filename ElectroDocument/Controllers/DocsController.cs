@@ -74,6 +74,69 @@ namespace ElectroDocument.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<ActionResult> Moved(string? id)
+        {
+            Employee emp = await userService.GetEmployeeAsync(id);
+
+            EmployeeContractModel model = new EmployeeContractModel();
+            model.Fullname = $"{emp.Individual.Name} {emp.Individual.Surname} {emp.Individual.Patronymic}";
+            model.id = Convert.ToInt64(id);
+            model.Roles = await roleService.GetRolesAsync();
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> Dismissed(string? id)
+        {
+            Employee emp = await userService.GetEmployeeAsync(id);
+
+            EmployeeContractModel model = new EmployeeContractModel();
+            model.Fullname = $"{emp.Individual.Name} {emp.Individual.Surname} {emp.Individual.Patronymic}";
+            model.id = Convert.ToInt64(id);
+            model.Roles = await roleService.GetRolesAsync();
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> Weekend(string? id)
+        {
+            Employee emp = await userService.GetEmployeeAsync(id);
+
+            EmployeeContractModel model = new EmployeeContractModel();
+            model.Fullname = $"{emp.Individual.Name} {emp.Individual.Surname} {emp.Individual.Patronymic}";
+            model.id = Convert.ToInt64(id);
+            model.Roles = await roleService.GetRolesAsync();
+
+            return View(model);
+        }
+
+        public async Task<ActionResult> RoleCreate(string? id)
+        {
+            Employee emp = await userService.GetEmployeeAsync(id);
+
+            EmployeeContractModel model = new EmployeeContractModel();
+            model.Fullname = $"{emp.Individual.Name} {emp.Individual.Surname} {emp.Individual.Patronymic}";
+            model.id = Convert.ToInt64(id);
+            model.Roles = await roleService.GetRolesAsync();
+
+            return View(model);
+        }
+
+        public async Task<ActionResult> Encourage(string? id)
+        {
+            Employee emp = await userService.GetEmployeeAsync(id);
+
+            EmployeeContractModel model = new EmployeeContractModel();
+            model.Fullname = $"{emp.Individual.Name} {emp.Individual.Surname} {emp.Individual.Patronymic}";
+            model.id = Convert.ToInt64(id);
+            model.Roles = await roleService.GetRolesAsync();
+
+            return View(model);
+        }
+
         [HttpPost]
         public async Task<IResult> GenerateEmployeeContract([FromForm] GenerateEmployeeContractModel model)
         {
@@ -84,6 +147,87 @@ namespace ElectroDocument.Controllers
             data.Number = Convert.ToInt32(model.docNumber);
             data.Date = model.date;
             data.Role = Convert.ToInt64(model.position);
+
+            service.CreateDocument(model.id, data);
+            return Results.StatusCode(StatusCodes.Status200OK);
+        }
+
+        [HttpPost]
+        public async Task<IResult> GenerateMoved([FromForm] GenerateMoved model)
+        {
+            Employee emp = await userService.GetEmployeeAsync(model.id.ToString());
+
+            RoleMoveData data = new RoleMoveData();
+            data.Number = Convert.ToInt32(model.docNumber);
+            data.Date = model.date;
+            data.OldRole = model.position;
+            data.NewRole = model.newPosition;
+            data.Reason = model.Reason;
+            data.Salary = model.salary;
+
+            service.CreateDocument(model.id, data);
+            return Results.StatusCode(StatusCodes.Status200OK);
+        }
+
+        [HttpPost]
+        public async Task<IResult> GenerateDismissed([FromForm] GenerateDismissed model)
+        {
+            Employee emp = await userService.GetEmployeeAsync(model.id.ToString());
+
+            DismissedData data = new DismissedData();
+            data.Number = Convert.ToInt32(model.docNumber);
+            data.Date = model.date;
+            data.Reason = model.Reason;
+            data.Desc = model.Desc;
+
+            service.CreateDocument(model.id, data);
+            return Results.StatusCode(StatusCodes.Status200OK);
+        }
+
+        [HttpPost]
+        public async Task<IResult> GenerateWeekend([FromForm] GenerateWeekend model)
+        {
+            Employee emp = await userService.GetEmployeeAsync(model.id.ToString());
+
+            WeekendData data = new WeekendData();
+            data.Number = Convert.ToInt32(model.docNumber);
+            data.Date = model.date;
+            data.Reason = model.Reason;
+            data.End = model.End;
+
+            service.CreateDocument(model.id, data);
+            return Results.StatusCode(StatusCodes.Status200OK);
+        }
+
+        [HttpPost]
+        public async Task<IResult> GenerateRoleCreation([FromForm] GenerateRoleCreate model)
+        {
+            Employee emp = await userService.GetEmployeeAsync(model.id.ToString());
+
+
+            RoleCreationData data = new RoleCreationData();
+            data.Number = Convert.ToInt32(model.docNumber);
+            data.Date = model.date;
+            data.NewRole = model.Role;
+            data.Salary = Convert.ToInt32(model.Salary);
+
+            service.CreateDocument(model.id, data);
+            return Results.StatusCode(StatusCodes.Status200OK);
+        }
+
+        [HttpPost]
+        public async Task<IResult> GenerateEncourage([FromForm] GenerateEncourage model)
+        {
+            Employee emp = await userService.GetEmployeeAsync(model.id.ToString());
+
+
+            EncourageData data = new EncourageData();
+            data.Number = Convert.ToInt32(model.docNumber);
+            data.Date = model.date;
+            data.Role = model.Role;
+            data.Reason = model.Reason;
+            data.Desc = model.Desc;
+            data.Salary = Convert.ToInt32(model.salary);
 
             service.CreateDocument(model.id, data);
             return Results.StatusCode(StatusCodes.Status200OK);

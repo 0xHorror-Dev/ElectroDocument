@@ -10,6 +10,7 @@ using System.Security.Claims;
 using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Pomelo.EntityFrameworkCore.MySql.Query.ExpressionTranslators.Internal;
 
 namespace ElectroDocument.Controllers
 {
@@ -18,12 +19,16 @@ namespace ElectroDocument.Controllers
     {
         private UserService userService;
         private ILogger<ProfileController> logger;
+        private DocsService service;
+        private RoleService roleService;
         private readonly IWebHostEnvironment _env;
 
-        public ProfileController(UserService userService, ILogger<ProfileController> logger, IWebHostEnvironment env)
+        public ProfileController(UserService userService, RoleService roleService, ILogger<ProfileController> logger, IWebHostEnvironment env, DocsService service)
         {
             this.userService = userService;
             this.logger = logger;
+            this.service = service;
+            this.roleService = roleService;
             _env = env;
         }
 
@@ -80,14 +85,19 @@ namespace ElectroDocument.Controllers
             string id = claim.Value;
             Employee? emp = await userService.GetEmployeeAsync(id);
 
-            return View(new ProfileModel
+            ProfileModel model = new ProfileModel
             {
                 Name = emp.Individual.Name,
                 Surname = emp.Individual.Surname,
                 Patronymic = emp.Individual.Patronymic,
                 ImageUrl = $"/Profile/Image/{id}",
-                PasswordError = PasswordError
-            });
+                PasswordError = PasswordError,
+                Position = emp.Role
+            };
+
+            model.docs = service.GetDocsByUserId(emp.Id);
+
+            return View(model) ;
         }
 
         public async Task<ActionResult> ChangePassword([FromForm]ProfilePasswordChange model)
@@ -135,19 +145,65 @@ namespace ElectroDocument.Controllers
             return Redirect("Home");
         }
 
+
+        [Authorize(Policy = "Admin")]
+        [HttpPost]
+        public async Task<ActionResult> AdminChangeProfilePassword([FromForm] long id)
+        {
+            if (Request.Form.Files.Count > 0)
+            {
+                var dir = $"{_env.WebRootPath}/UsersImages";
+                var path = Path.Combine(dir, id.ToString() + ".jpg");
+                var uploadedFile = Request.Form.Files[0];
+
+                // Check if the file is an image
+                if (uploadedFile.ContentType.StartsWith("image/"))
+                {
+                    // Process the image
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await uploadedFile.CopyToAsync(memoryStream);
+                        byte[] imageData = memoryStream.ToArray();
+
+                        // Here you can save the image, process it further, or return it as needed
+                        Console.WriteLine();
+                        System.IO.File.WriteAllBytes(path, imageData);
+
+                        //return File(imageData, uploadedFile.ContentType);
+                    }
+                }
+            }
+
+            return Redirect("Home");
+        }
+
         [Authorize(Policy = "Admin")]
         public async Task<ActionResult> Edit(long id)
         {
             Employee? emp = await userService.GetEmployeeAsync(id.ToString());
+            IEnumerable<Role> roles = await roleService.GetRolesAsync();
 
-            return View(new ProfileModel
+            var model = new ProfileModel
             {
                 Name = emp.Individual.Name,
                 Surname = emp.Individual.Surname,
                 Patronymic = emp.Individual.Patronymic,
                 ImageUrl = $"/Profile/Image/{id}",
-                Id = id
-            });
+                Id = id,
+                Position = emp.Role,
+                Roles = roles
+            };
+
+            model.docs = service.GetDocsByUserId(emp.Id);
+            return View(model);
+        }
+
+        [Authorize(Policy = "Admin")]
+        [HttpPost]
+        public IResult RoleUpdate([FromBody] ProfileRoleUpdate model)
+        {
+            service.UpdateRole(model.Id, model.Position);
+            return Results.Ok(model);
         }
 
         // GET: ProfileController/Details/5

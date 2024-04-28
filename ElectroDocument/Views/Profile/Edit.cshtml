@@ -1,4 +1,6 @@
-﻿@{
+﻿@using ElectroDocument.Controllers.AppContext;
+
+@{
     ViewData["Title"] = $"Профиль - {Model.FullName}";
     string FullName = Model.FullName;
     string Name = Model.Name;
@@ -6,38 +8,169 @@
     string? Patronymic = Model.Patronymic;
     string ImageUrl = Model.ImageUrl;
     long id = Model.Id;
+    string? passwordError = Model.PasswordError;
+    Role Position = Model.Position;
+    var docs = Model.docs;
+    IEnumerable<Role> roles = Model.Roles;
+    long roleid = @Position.Id;
+
 }
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table, th, td {
+        border: 1px solid black;
+    }
+
+    th, td {
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+        cursor: pointer;
+    }
+</style>
+
 
 <body>
     <div class="container">
         <img src="@ImageUrl" alt="Profile Image" class="profile-img">
         <h1 class="fullname">@FullName</h1>
-        <!-- Additional profile information can be added here -->
+        <select class="position" onchange="toggleButton()">
+            @foreach(Role r in roles)
+            {
+                <option value="@r.Id">@r.Title</option>
+            }
+        </select>
+        <button id="submitButton" style="display: none;" onclick="submitForm()">Отправить</button>
+        <div id="position_message" style="display: none;"></div>
     </div>
 
-    <div>
-        <a href="/Docs?id=@id">Документы</a>
+
+    <div class="form-container">
+        <h1>Изменение изображение профиля</h1>
+            <form method="post" enctype="multipart/form-data" action="/Profile/AdminChangeProfilePicture">
+            <input type="file" name="profilePicture" accept="image/*">
+            <input type="hidden" id="id" name="id" value="@id">
+            <button type="submit" class="btn-primary">Сменить изображение профиля</button>
+        </form>
+
+        <h1>Изменение пароля</h1>
+        <form method="post" action="/Profile/ChangePassword">
+            <input type="password" name="currentPassword" placeholder="Текущий пароль" required>
+            <input type="password" name="newPassword" placeholder="Новый пароль" required>
+            <input type="hidden" id="id" name="id" value="@id">
+            @if (passwordError is not null)
+            {
+                <p class="error-message">Ошибка: @passwordError</p>
+            }
+            <button type="submit" class="btn-primary">Изменить пароль</button>
+        </form>
     </div>
-
-    <form method="post" enctype="multipart/form-data" action="@GetActionUrl()">
-        <input type="file" name="profilePicture" accept="image/*">
-        <input type="hidden" id="id" name="id" value="@id">
-        <button type="submit">Change Profile Picture</button>
-    </form>
-
-    <form method="post" action="/Profile/AdminChangePassword">
-        <input type="password" name="currentPassword" placeholder="Current Password" required>
-        <input type="password" name="newPassword" placeholder="New Password" required>
-        <input type="password" name="confirmNewPassword" placeholder="Confirm New Password" required>
-        <button type="submit">Change Password</button>
-    </form>
-    <a href="/Docs/EmployeeContract?id=@id">Сформировать трудовой договор</a>
+    <h1>Сформировать Документы</h1>
+    <a href="/Docs/EmployeeContract?id=@id">Сформировать трудовой договор</a></br>
+    <a href="/Docs/Moved?id=@id">Сформировать приказ о переводе</a></br>
+    <a href="/Docs/Dismissed?id=@id">Сформировать приказ о расторжении трудового договора</a></br>
+    <a href="/Docs/Weekend?id=@id">Сформировать приказ о предоставлние отпускных</a></br>
+    <a href="/Docs/Encourage?id=@id">Сформировать приказ о поощерении</a></br>
+    <div class="form-container">
+        <h1> Документы </h1>
+        <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Введите описание">
+        <table id="docTable">
+            <thead>
+                <tr>
+                    <th>Номер документа</th>
+                    <th>Дата</th>
+                    <th>Описание</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Doc doc in docs)
+                {
+                    <tr onclick="window.location.href='/Docs/GenerateDocument?id=@doc.Id';">
+                        <td>@doc.Number</td>
+                        <td>@doc.Date</td>
+                        <td>@doc.Title</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </body>
 
-@{
-    string GetActionUrl()
-    {
-        // Assuming you want to navigate to /Profile/AdminChangeProfilePicture/{Id}
-        return $"/Profile/AdminChangeProfilePicture";
+
+<script>
+    document.querySelector('.position').value = "@roleid";
+
+    function toggleButton() {
+        var selectElement = document.querySelector('.position');
+        var submitButton = document.getElementById('submitButton');
+
+        if (selectElement.value !== '') {
+            submitButton.style.display = 'block';
+        } else {
+            submitButton.style.display = 'none';
+        }
     }
-}
+
+    function submitForm() {
+        var selectedPosition = document.querySelector('.position').value;
+
+        fetch('/Profile/RoleUpdate', {
+            method: 'POST',
+            body: JSON.stringify({ position: selectedPosition, id: @id }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    showMessage('Запрос успешно выполнен.');
+                } else {
+                    throw new Error('Произошла ошибка при выполнении запроса.');
+                }
+            })
+            .catch(error => {
+                showMessage(error.message, true);
+            });
+    }
+
+    function showMessage(message, isError = false) {
+        var messageElement = document.getElementById('position_message');
+        messageElement.textContent = message;
+        messageElement.style.display = 'block';
+        messageElement.style.color = isError ? 'red' : 'green';
+    }
+
+    function searchTable() {
+        // Declare variables
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("docTable");
+        tr = table.getElementsByTagName("tr");
+
+        // Loop through all table rows, and hide those who don't match the search query
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[2]; // searching only in third column (Описание)
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>

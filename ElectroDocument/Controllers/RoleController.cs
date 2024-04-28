@@ -3,6 +3,7 @@ using ElectroDocument.Controllers.Services;
 using ElectroDocument.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata;
+using System.Security.Claims;
 
 namespace ElectroDocument.Controllers
 {
@@ -18,20 +19,29 @@ namespace ElectroDocument.Controllers
 
 		public async Task<IActionResult> Index()
 		{
-			//List<RoleModelTableRow> rows = new List<RoleModelTableRow>();
+            //List<RoleModelTableRow> rows = new List<RoleModelTableRow>();
 
-			//foreach(Role r in await roleService.GetRolesAsync())
-			//{
-			//	rows.Add(new RoleModelTableRow { Id = r.Id, AccessLevel = r.AccessLevel, Name = r.Title, EmployeeCount = r.Employees.Count });
+            //foreach(Role r in await roleService.GetRolesAsync())
+            //{
+            //	rows.Add(new RoleModelTableRow { Id = r.Id, AccessLevel = r.AccessLevel, Name = r.Title, EmployeeCount = r.Employees.Count });
 
-   //         }
-			
-			return View(new RoleModel { rolesTable = await roleService.GetRolesAsync()});
+            //         }
+
+            return View(new RoleModel { rolesTable = await roleService.GetRolesAsync()});
 		}
 
 		public async Task<IActionResult> Create()
 		{
-			return View();
+            IEnumerable<Claim> claims = User.Claims;
+            Claim claim = claims.Where(claim => claim.Type == ClaimTypes.NameIdentifier).First();
+            string id = claim.Value;
+
+			var model = new
+			{
+				Id = Convert.ToInt64(id),
+			};
+
+            return View(model);
 		}
 
 		public async Task<IResult> Add([FromBody] RoleCreateModel model)

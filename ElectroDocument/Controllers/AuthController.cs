@@ -25,6 +25,21 @@ namespace ElectroDocument.Controllers
             return View();
         }
 
+        [HttpPost(Name = "clsSession")]
+        public IResult ClsSession()
+        {
+            Console.WriteLine("test");
+            HttpContext.Session.Clear();
+            return Results.Ok();
+        }
+
+        public IResult Test()
+        {
+            Console.WriteLine("test");
+            return Results.Ok();
+
+        }
+
         [HttpPost(Name = "login")]
         public async Task<IResult> Login([FromBody] LoginData data)
         {

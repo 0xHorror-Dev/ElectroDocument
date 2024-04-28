@@ -18,8 +18,6 @@ document.getElementById("loginSubmit").addEventListener("click", async e => {
 
         const data = await responseCopy.json();
 
-        //sessionStorage.setItem(tokenKey, data.accessToken);
-
         console.log(data.accessToken)
 
         const response = await fetch("/Profile", {
