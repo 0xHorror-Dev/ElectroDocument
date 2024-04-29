@@ -49,6 +49,7 @@ public partial class ElectroDocumentContext : DbContext
             entity.Property(e => e.DescSecond).HasColumnType("text");
             entity.Property(e => e.DocType).HasColumnType("tinyint(4)");
             entity.Property(e => e.EmployeeId).HasColumnType("bigint(20)");
+            entity.Property(e => e.Notified).HasColumnType("smallint(6)");
             entity.Property(e => e.Number).HasColumnType("bigint(20)");
             entity.Property(e => e.Reason).HasColumnType("text");
             entity.Property(e => e.Sum).HasColumnType("int(11)");

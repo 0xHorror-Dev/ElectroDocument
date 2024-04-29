@@ -12,3 +12,4 @@ image.addEventListener('click', function () {
     sessionStorage.removeItem(tokenKey);
     document.location.href = '/logout';
 });
+

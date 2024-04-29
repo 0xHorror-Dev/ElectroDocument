@@ -1,7 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Identity
+@using ElectroDocument.Controllers.Services;
 
+@inject NotificationService NotificationService
 @inject IAuthorizationService AuthorizationService
 
 <!DOCTYPE html>
@@ -27,6 +29,40 @@
             max-height: 28px;
             border-radius: 50%;
         }
+
+        .nav-link-notify
+        {
+            max-width: 28px;
+            max-height: 28px;
+            border-radius: 50%;
+        }
+
+
+        .notification {
+            background-color: white;
+            color: white;
+            text-decoration: none;
+            padding: 2px 2px;
+            position: relative;
+            display: inline-block;
+            border-radius: 50%;
+        }
+
+            .notification:hover {
+                background: gray;
+            }
+
+            .notification .badge {
+                position: absolute;
+                top: -10px;
+                right: -10px;
+                padding: 5px 10px;
+                border-radius: 50%;
+                background-color: blue;
+                color: white;
+                display: none;
+            }?
+
     </style>
 </head>
 <body>
@@ -85,8 +121,17 @@
                                 <img src="/Profile/Image/@userId" alt="User Photo" class="nav-item-photo"> <!-- Фотография пользователя -->
                             </li>
                             <li class="nav-item">
-                                <img src="https://www.svgrepo.com/download/42231/exit.svg" alt="Exit" class="nav-link-exit nav-item-photo text-dark"> <!-- Фотография пользователя -->
+                                <div class="notification">
+                                    <span id="notCount" class="badge">0</span>
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Notification" asp-action="Index">
+                                        <img src="https://www.svgrepo.com/download/31480/notification-bell.svg" alt="Notification" class="nav-link-notify nav-item-photo text-dark"> <!-- Уведомления -->
+                                    </a>
+                                </div>
                             </li>
+                            <li class="nav-item">
+                                <img src="https://www.svgrepo.com/download/42231/exit.svg" alt="Exit" class="nav-link-exit nav-item-photo text-dark"> <!-- Кнопка выхода -->
+                            </li>
+
                         </ul>
                     }
                 </div>
@@ -104,6 +149,50 @@
             &copy; 2024 - ElectroDocument - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+    @if (@Context.User.Identity.IsAuthenticated)
+    {
+        var userClaims = User.Claims;
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        <script>
+
+            async function UpdateNotificationCount() {
+                bubble = document.getElementById('notCount');
+
+                try {
+                    let response = await fetch("/Notification/GetNotificationCount", {
+                        method: "POST",
+                        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            empId: @userId
+                        })
+                    });
+
+
+                    if (response.ok) {
+                        let res = await response.json();
+                        if (res.count != 0) {
+                            bubble.innerHTML = res.count;
+                            bubble.style.display = "block";
+                        }
+                        else {
+                        }
+
+
+                    } else {
+                        console.error('Failed to fetch notification count:', response.status);
+                    }
+                } catch (error) {
+                    console.error('Error fetching notification count:', error);
+                }
+            }
+
+            window.addEventListener("load", async (event) => {
+                await UpdateNotificationCount();
+                setInterval(UpdateNotificationCount, 10000);
+            });
+        </script>
+    }
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
