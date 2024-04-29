@@ -1,0 +1,111 @@
+﻿@using ElectroDocument.Controllers.AppContext;
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@using ElectroDocument.Controllers.Services;
+@{
+    ViewData["Title"] = "Документы";
+    var docs = Model.docs;
+    var userClaims = User.Claims;
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table, th, td {
+        border: 1px solid black;
+    }
+
+    th, td {
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+        cursor: pointer;
+    }
+</style>
+
+<button id="AllDocsAccept" class="btn btn-primary">Подтвердить все</button>
+<table>
+    <thead>
+        <tr>
+            <th>Номер документа</th>
+            <th>Дата</th>
+            <th>Описание</th>
+            <th>Подтвердить о ознакомление с документом</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Doc doc in docs)
+        {
+            <tr >
+                <td onclick ="window.location.href='/Docs/GenerateDocument?id=@doc.Id';">@doc.Number</td>
+                <td onclick="window.location.href='/Docs/GenerateDocument?id=@doc.Id';">@doc.Date</td>
+                <td onclick="window.location.href='/Docs/GenerateDocument?id=@doc.Id';">@doc.Title</td>
+                <td><button id="@doc.Id" class="btn btn-primary DocAccept">Подтвердить</button></td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+
+<script>
+
+    const allAcceptButton = document.getElementById("AllDocsAccept");
+    allAcceptButton.addEventListener("click", async function (event) {
+        let response = await fetch("/Notification/AcceptAllNotifications", {
+            method: "POST",
+            headers: { "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify({
+                empId: @userId
+            })
+        });
+
+        console.log(response);
+
+        if (response.ok === true) {
+            location.reload(true);
+        }
+    });
+
+
+    async function handleClick(buttonId) 
+    {
+        let response = await fetch("/Notification/SetNotification", {
+            method: "POST",
+            headers: { "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify({
+                empId: @userId,
+                docId: buttonId
+            })
+        });
+
+        console.log(response);
+
+        if (response.ok === true) 
+        {
+            location.reload(true);
+        }
+    }
+    console.log("buttons");
+    var buttons = document.getElementsByClassName("DocAccept");
+    console.log(buttons);
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener("click", function (event) {
+            // Get the ID of the clicked button
+            var buttonId = event.target.id;
+            handleClick(buttonId);
+        });
+    }
+
+</script>

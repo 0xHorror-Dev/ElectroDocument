@@ -17,6 +17,7 @@ builder.Services.AddDbContext<ElectroDocumentContext>();
 builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<RoleService>();
 builder.Services.AddTransient<DocsService>();
+builder.Services.AddTransient<NotificationService>();
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {

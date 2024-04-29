@@ -29,5 +29,7 @@ public partial class Doc
 
     public string? Title { get; set; }
 
+    public short Notified { get; set; }
+
     public virtual Employee? Employee { get; set; }
 }
