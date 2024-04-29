@@ -31,5 +31,11 @@ public partial class Doc
 
     public short Notified { get; set; }
 
+    public long? Responsible { get; set; }
+
+    public short? ResponsibleNotified { get; set; }
+
     public virtual Employee? Employee { get; set; }
+
+    public virtual Employee? ResponsibleNavigation { get; set; }
 }

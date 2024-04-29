@@ -42,6 +42,8 @@ public partial class ElectroDocumentContext : DbContext
 
             entity.HasIndex(e => e.EmployeeId, "FK_DocsNew_Employee");
 
+            entity.HasIndex(e => e.Responsible, "FK_DocsNew_Responsible");
+
             entity.HasIndex(e => e.Number, "Number").IsUnique();
 
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
@@ -52,12 +54,18 @@ public partial class ElectroDocumentContext : DbContext
             entity.Property(e => e.Notified).HasColumnType("smallint(6)");
             entity.Property(e => e.Number).HasColumnType("bigint(20)");
             entity.Property(e => e.Reason).HasColumnType("text");
+            entity.Property(e => e.Responsible).HasColumnType("bigint(20)");
+            entity.Property(e => e.ResponsibleNotified).HasColumnType("smallint(6)");
             entity.Property(e => e.Sum).HasColumnType("int(11)");
             entity.Property(e => e.Title).HasMaxLength(50);
 
-            entity.HasOne(d => d.Employee).WithMany(p => p.Docs)
+            entity.HasOne(d => d.Employee).WithMany(p => p.DocEmployees)
                 .HasForeignKey(d => d.EmployeeId)
                 .HasConstraintName("FK_DocsNew_Employee");
+
+            entity.HasOne(d => d.ResponsibleNavigation).WithMany(p => p.DocResponsibleNavigations)
+                .HasForeignKey(d => d.Responsible)
+                .HasConstraintName("FK_DocsNew_Responsible");
         });
 
         modelBuilder.Entity<Employee>(entity =>

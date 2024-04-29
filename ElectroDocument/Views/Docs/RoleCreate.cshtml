@@ -1,4 +1,8 @@
 ﻿@using ElectroDocument.Controllers.AppContext;
+@using ElectroDocument.Controllers.Services;
+
+@inject UserService userService
+
 @{
     ViewData["Title"] = "Документы - Изменение шатного расписания";
     var userId = Model.id;
@@ -125,6 +129,16 @@
         <div class="form-group">
             <label for="date">Дата первого рабочего дня:</label>
             <input type="date" id="date" name="date" required>
+        </div>
+        <div class="form-group">
+            <label for="responsible">Исполнитель:</label>
+            <select id="responsible" name="responsible" required>
+                <option value="">Исполнитель</option>
+                @foreach (Employee emp in await userService.GetEmployees())
+                {
+                    <option value="@emp.Id">@emp.Individual.Name @emp.Individual.Surname @emp.Individual.Patronymic</option>
+                }
+            </select>
         </div>
         <button type="submit" class="btn">Отправить</button>
     </form>
