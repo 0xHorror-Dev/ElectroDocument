@@ -71,6 +71,8 @@ namespace ElectroDocument.Models
 
         public DateOnly date { get; set; }
 
+        public long responsible { get;set; }
+
     }
 
     public class GenerateEncourage

@@ -66,6 +66,7 @@ namespace ElectroDocument.Controllers.Services
     {
         public string NewRole { get; set; }
         public int Salary{ get; set; }
+        public long Resposible { get; set; }
     }
 
     public class EncourageData : ADocumentData
@@ -238,6 +239,7 @@ namespace ElectroDocument.Controllers.Services
                 role.DocType = (int)DocumentTypes.AddRole;
                 role.Title = "О внесение изменений в штатное расписание.";
 
+                role.Responsible = roleDate.Resposible;
                 context.Docs.Add(role);
                 context.SaveChanges();
             }
@@ -397,12 +399,16 @@ namespace ElectroDocument.Controllers.Services
                     break;
                 case DocumentTypes.AddRole:
                     {
-                        doc.LoadFromFile("OD-SR-051.docx");
+                        string ResponsibleFullname = $"{rawDocument.ResponsibleNavigation.Individual.Name} {rawDocument.ResponsibleNavigation.Individual.Surname} {rawDocument.ResponsibleNavigation.Individual.Patronymic}";
+                        //rawDocument.ResponsibleNavigation.Role.
+                        doc.LoadFromFile("OD-SR-051-1.docx");
                         Replace(doc, @"ДОКН", rawDocument.Number.ToString());//3
                         Replace(doc, @"ДАТАС", DateTime.Now.ToString("dd.MM.yyyy"));//3
                         Replace(doc, @"РОЛЬНОВАЯ", rawDocument.Desc);//3
                         Replace(doc, @"ОКЛАД", rawDocument.Sum.ToString());//3
                         Replace(doc, @"ДАТАП", rawDocument.Date.ToString("dd.MM.yyyy"));//3
+                        Replace(doc, @"ResponsibleFN", ResponsibleFullname);//3
+                        Replace(doc, @"ResponsibleRole", rawDocument.ResponsibleNavigation.Role.Title);//3
                     }
                     break;
                 case DocumentTypes.Encouragement:

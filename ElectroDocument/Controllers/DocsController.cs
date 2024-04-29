@@ -11,7 +11,7 @@ using Document = Spire.Doc.Document;
 
 namespace ElectroDocument.Controllers
 {
-    [Authorize(Policy = "Admin")]
+    [Authorize]
     public class DocsController : Controller
     {
         DocsService service;
@@ -24,6 +24,7 @@ namespace ElectroDocument.Controllers
             this.roleService=roleService;
         }
 
+        [Authorize(Policy = "Admin")]
         public async Task<IActionResult> Index(long? id)
         {
             DocsModel model;
@@ -43,6 +44,7 @@ namespace ElectroDocument.Controllers
             return View(model);
         }
 
+
         [HttpGet]
         public async Task<FileContentResult> GenerateDocument(string id)
         {
@@ -61,6 +63,7 @@ namespace ElectroDocument.Controllers
             }
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult> EmployeeContract(string? id)
         {
@@ -74,6 +77,7 @@ namespace ElectroDocument.Controllers
             return View(model);
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult> Moved(string? id)
         {
@@ -87,6 +91,7 @@ namespace ElectroDocument.Controllers
             return View(model);
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult> Dismissed(string? id)
         {
@@ -100,6 +105,7 @@ namespace ElectroDocument.Controllers
             return View(model);
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult> Weekend(string? id)
         {
@@ -113,6 +119,7 @@ namespace ElectroDocument.Controllers
             return View(model);
         }
 
+        [Authorize(Policy = "Admin")]
         public async Task<ActionResult> RoleCreate(string? id)
         {
             Employee emp = await userService.GetEmployeeAsync(id);
@@ -125,6 +132,7 @@ namespace ElectroDocument.Controllers
             return View(model);
         }
 
+        [Authorize(Policy = "Admin")]
         public async Task<ActionResult> Encourage(string? id)
         {
             Employee emp = await userService.GetEmployeeAsync(id);
@@ -137,6 +145,7 @@ namespace ElectroDocument.Controllers
             return View(model);
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<IResult> GenerateEmployeeContract([FromForm] GenerateEmployeeContractModel model)
         {
@@ -152,6 +161,7 @@ namespace ElectroDocument.Controllers
             return Results.StatusCode(StatusCodes.Status200OK);
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<IResult> GenerateMoved([FromForm] GenerateMoved model)
         {
@@ -169,6 +179,7 @@ namespace ElectroDocument.Controllers
             return Results.StatusCode(StatusCodes.Status200OK);
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<IResult> GenerateDismissed([FromForm] GenerateDismissed model)
         {
@@ -184,6 +195,7 @@ namespace ElectroDocument.Controllers
             return Results.StatusCode(StatusCodes.Status200OK);
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<IResult> GenerateWeekend([FromForm] GenerateWeekend model)
         {
@@ -198,7 +210,7 @@ namespace ElectroDocument.Controllers
             service.CreateDocument(model.id, data);
             return Results.StatusCode(StatusCodes.Status200OK);
         }
-
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<IResult> GenerateRoleCreation([FromForm] GenerateRoleCreate model)
         {
@@ -210,11 +222,13 @@ namespace ElectroDocument.Controllers
             data.Date = model.date;
             data.NewRole = model.Role;
             data.Salary = Convert.ToInt32(model.Salary);
+            data.Resposible = model.responsible;
 
             service.CreateDocument(model.id, data);
             return Results.StatusCode(StatusCodes.Status200OK);
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<IResult> GenerateEncourage([FromForm] GenerateEncourage model)
         {
