@@ -207,18 +207,16 @@ namespace ElectroDocument.Controllers.Services
         public Doc? GetFirstDocVersionById(long id)
         {
             context.Docs.Load();
-            context.DocumentVersions.Load();
             context.Employees.Load();
             context.Roles.Load();
             context.Individuals.Load();
-            Doc doc = context.Docs.Find(id);
-            
-            
-            List<DocumentVersion> docsVersions = new List<DocumentVersion>(doc.DocumentVersionDocs);
-            docsVersions.AddRange(doc.DocumentVersionNewDocs);
-            IEnumerable<DocumentVersion> docs = docsVersions.OrderBy(ver => ver.Id);
+            DocumentVersion docVer = GetDocumentVersion(id);
+            if (docVer.DocIdSrc == id)
+            {
+                return docVer.DocIdSrcNavigation;
+            }
 
-            return docs.First().Doc;
+            return GetLastDocVersionById(docVer.DocIdSrc);
         }
 
         public Doc? GetLastEmployeeContract(long UserId)
@@ -367,35 +365,19 @@ namespace ElectroDocument.Controllers.Services
             context.DocumentVersions.Load();
             long newDocId = doc.Id;
 
-            if (isFirstNewDocVersion(docId))
-            {
-                DocumentVersion version = new DocumentVersion();
-                //context.Docs.Find(docId);
+            Doc srcDoc = GetFirstDocVersionById(docId);
+            DocumentVersion version = new DocumentVersion();
+            //context.Docs.Find(docId);
 
-                version.NewDocId = newDocId;
-                version.DocIdSrc = docId;
-                version.Date = DateTime.Now;
-                version.DocId = docId;
-                version.EditorId = editorId;
+            version.NewDocId = newDocId;
+            version.DocIdSrc = srcDoc.Id;
+            version.Date = DateTime.Now;
+            version.DocId = docId;
+            version.EditorId = editorId;
 
-                context.DocumentVersions.Add(version);
-                context.SaveChanges();
-            }
-            else
-            {
-                Doc srcDoc = GetFirstDocVersionById(docId);
-                DocumentVersion version = new DocumentVersion();
-                //context.Docs.Find(docId);
+            context.DocumentVersions.Add(version);
+            context.SaveChanges();
 
-                version.NewDocId = newDocId;
-                version.DocIdSrc = srcDoc.Id;
-                version.Date = DateTime.Now;
-                version.DocId = docId;
-                version.EditorId = editorId;
-
-                context.DocumentVersions.Add(version);
-                context.SaveChanges();
-            }
 
         }
 
