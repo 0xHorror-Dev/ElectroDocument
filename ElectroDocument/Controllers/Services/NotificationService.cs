@@ -8,11 +8,11 @@ namespace ElectroDocument.Controllers.Services
 {
     public class NotificationService
     {
-        private ElectroDocumentContext context;
+        private ElectroDocumentDevContext context;
         private IDistributedCache distributedCache;
         private DocsService docs;
 
-        public NotificationService(ElectroDocumentContext context, IDistributedCache distributedCache, DocsService docs)
+        public NotificationService(ElectroDocumentDevContext context, IDistributedCache distributedCache, DocsService docs)
         {
             this.context = context;
             this.distributedCache = distributedCache;

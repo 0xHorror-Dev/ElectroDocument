@@ -242,11 +242,11 @@ else
         }
 
         window.addEventListener("load", (event) => {
-            setValueForListbox('Role', '@Html.Raw(lastDoc.DescSecond)');
+            setValueForListbox('Role', '@Html.Raw(lastDoc.DocDetails.DescSecond)');
             document.getElementById('salary').value = @Html.Raw(lastDoc.Sum);
             document.getElementById('docNumber').value = @lastDoc.Number;
-            document.getElementById('desc').value = '@Html.Raw(lastDoc.Desc)';
-            document.getElementById('reason').value = '@Html.Raw(lastDoc.Reason)';
+            document.getElementById('desc').value = '@Html.Raw(lastDoc.DocDetails.Desc)';
+            document.getElementById('reason').value = '@Html.Raw(lastDoc.DocDetails.Reason)';
             var today = new Date('@GetDateForJs(lastDoc.Date)');
             console.log(today);
 

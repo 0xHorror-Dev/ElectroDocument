@@ -11,9 +11,9 @@ namespace ElectroDocument.Controllers.Services
     public class UserService
     {
         private IDistributedCache cache;
-        private ElectroDocumentContext db;
+        private ElectroDocumentDevContext db;
 
-        public UserService(ElectroDocumentContext context, IDistributedCache distributedCache)
+        public UserService(ElectroDocumentDevContext context, IDistributedCache distributedCache)
         {
             cache = distributedCache;
             db = context;

@@ -51,9 +51,9 @@
             bool isExecutor = doc.Responsible == Convert.ToInt64(userId);
 
             <tr >
-                <td onclick ="window.location.href='/Docs/GenerateDocument?id=@doc.Id';">@doc.Number</td>
-                <td onclick="window.location.href='/Docs/GenerateDocument?id=@doc.Id';">@doc.Date</td>
-                <td onclick="window.location.href='/Docs/GenerateDocument?id=@doc.Id';">@doc.Title @(isExecutor ? "(Исполнитель)" : doc.Responsible is null ? "" : Convert.ToBoolean(doc.ResponsibleNotified) ? "(Исполнитель уведомлен)" : "(Исполнитель еще не уведомлен)")</td>
+                <td onclick ="window.location.href='/Docs/View?id=@doc.Id';">@doc.Number</td>
+                <td onclick="window.location.href='/Docs/View?id=@doc.Id';">@doc.Date</td>
+                <td onclick="window.location.href='/Docs/View?id=@doc.Id';">@doc.Title @(isExecutor ? "(Исполнитель)" : doc.Responsible is null ? "" : Convert.ToBoolean(doc.ResponsibleNotified) ? "(Исполнитель уведомлен)" : "(Исполнитель еще не уведомлен)")</td>
                 <td><button id="@doc.Id" class="btn btn-primary DocAccept">Подтвердить</button></td>
             </tr>
         }

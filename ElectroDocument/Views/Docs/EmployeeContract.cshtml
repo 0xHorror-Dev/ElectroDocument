@@ -230,7 +230,7 @@ else
         }
 
         window.addEventListener("load", (event) => {
-            setValueForListbox('position', '@Html.Raw(lastDoc.Desc)');
+            setValueForListbox('position', '@Html.Raw(lastDoc.DocDetails.Desc)');
             document.getElementById('salary').value = @Html.Raw(lastDoc.Sum);
             document.getElementById('docNumber').value = @lastDoc.Number;
             var today = new Date('@GetDateForJs(lastDoc.Date)');

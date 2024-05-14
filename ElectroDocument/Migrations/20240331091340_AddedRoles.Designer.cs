@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ElectroDocument.Migrations
 {
-    [DbContext(typeof(ElectroDocumentContext))]
+    [DbContext(typeof(ElectroDocumentDevContext))]
     [Migration("20240331091340_AddedRoles")]
     partial class AddedRoles
     {

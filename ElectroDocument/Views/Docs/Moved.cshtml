@@ -266,15 +266,15 @@ else
         }
 
         window.addEventListener("load", (event) => {
-            setValueForListbox('position', '@Html.Raw(lastDoc.Desc)');
-            console.log('desc is  @Html.Raw(lastDoc.Desc)');
-            console.log('desc2 is @Html.Raw(lastDoc.DescSecond)');
-            setValueForListbox('newPosition', '@Html.Raw(lastDoc.DescSecond)');
-            //setValueForListbox('reason', '@lastDoc.Reason');
+            setValueForListbox('position', '@Html.Raw(lastDoc.DocDetails.Desc)');
+            console.log('desc is  @Html.Raw(lastDoc.DocDetails.Desc)');
+            console.log('desc2 is @Html.Raw(lastDoc.DocDetails.DescSecond)');
+            setValueForListbox('newPosition', '@Html.Raw(lastDoc.DocDetails.DescSecond)');
+            //setValueForListbox('reason', '@lastDoc.DocDetails.Reason');
             //setValueForListbox('salary', @lastDoc.Sum);
             //setValueForListbox('docNumber', '@lastDoc.Number');
-            //setValueForListbox('date', '@lastDoc.DescSecond');
-            document.getElementById('reason').value = '@Html.Raw(lastDoc.Reason)';
+            //setValueForListbox('date', '@lastDoc.DocDetails.DescSecond');
+            document.getElementById('reason').value = '@Html.Raw(lastDoc.DocDetails.Reason)';
             document.getElementById('salary').value = @Html.Raw(lastDoc.Sum);
             document.getElementById('docNumber').value = @lastDoc.Number;
             var today = new Date('@GetDateForJs(lastDoc.Date)');

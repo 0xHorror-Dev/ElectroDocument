@@ -86,10 +86,10 @@ namespace ElectroDocument.Controllers.Services
 
     public class DocsService
     {
-        ElectroDocumentContext context;
+        ElectroDocumentDevContext context;
         IDistributedCache distributedCache;
 
-        public DocsService(ElectroDocumentContext context, IDistributedCache distributedCache)
+        public DocsService(ElectroDocumentDevContext context, IDistributedCache distributedCache)
         {
             this.context = context;
             this.distributedCache = distributedCache;
@@ -97,11 +97,14 @@ namespace ElectroDocument.Controllers.Services
 
         public IEnumerable<Doc> GetDocs()
         {
+            context.DocDetails.Load();
+            context.Docs.Load();
             return context.Docs.AsEnumerable();
         }
 
         public IEnumerable<Doc> GetDocsByUserId(long id)
         {
+            context.DocDetails.Load();
             context.Employees.Load();
             return context.Docs.Where(doc => doc.EmployeeId == id);
         }
@@ -120,6 +123,7 @@ namespace ElectroDocument.Controllers.Services
 
         public IEnumerable<Doc> GetFullDocsByUserId(long id)
         {
+            context.DocDetails.Load();
             context.Employees.Load();
             context.DocumentVersions.Load();
             List<Doc> docs = new List<Doc>(context.Docs.Where(doc => doc.EmployeeId == id));
@@ -156,6 +160,7 @@ namespace ElectroDocument.Controllers.Services
 
         public void UpdateRole(long userId, long roleId) 
         {
+            context.DocDetails.Load();
             context.Employees.Load();
             context.Roles.Load();
             context.Employees.Find(userId).RoleId = roleId;
@@ -164,6 +169,7 @@ namespace ElectroDocument.Controllers.Services
 
         public Doc? GetDocById(long id)
         {
+            context.DocDetails.Load();
             context.Docs.Load();
             context.Employees.Load();
             context.Roles.Load();
@@ -173,6 +179,7 @@ namespace ElectroDocument.Controllers.Services
 
         public DocumentVersion? GetDocumentVersion(long id)
         {
+            context.DocDetails.Load();
             context.DocumentVersions.Load();
             List<DocumentVersion> docsVersions = new List<DocumentVersion>(context.DocumentVersions);
             foreach(DocumentVersion version  in docsVersions)
@@ -185,6 +192,7 @@ namespace ElectroDocument.Controllers.Services
 
         public Doc? GetLastDocVersionById(long id)
         {
+            context.DocDetails.Load();
             context.Docs.Load();
             context.Employees.Load();
             context.Roles.Load();
@@ -206,6 +214,7 @@ namespace ElectroDocument.Controllers.Services
 
         public Doc? GetFirstDocVersionById(long id)
         {
+            context.DocDetails.Load();
             context.Docs.Load();
             context.Employees.Load();
             context.Roles.Load();
@@ -221,6 +230,7 @@ namespace ElectroDocument.Controllers.Services
 
         public Doc? GetLastEmployeeContract(long UserId)
         {
+            context.DocDetails.Load();
             context.Employees.Load();
             context.Docs.Load();
             context.Individuals.Load();
@@ -241,7 +251,7 @@ namespace ElectroDocument.Controllers.Services
                 Doc EmployeeContract = new Doc();
                 EmployeeContract.Number = contactData.Number;
                 EmployeeContract.Date = contactData.Date;
-                EmployeeContract.Desc = contactData.Role;
+                EmployeeContract.DocDetails = new DocDetail { Desc = contactData.Role };
                 EmployeeContract.Sum = contactData.Salary;
                 EmployeeContract.EmployeeId = empId;
                 EmployeeContract.DocType = (int)DocumentTypes.EmploymentContract;
@@ -255,9 +265,7 @@ namespace ElectroDocument.Controllers.Services
                 moved.Date = roleMoveData.Date;
                 moved.Number = roleMoveData.Number;
                 moved.EmployeeId = empId;
-                moved.Desc = roleMoveData.OldRole;
-                moved.DescSecond = roleMoveData.NewRole;
-                moved.Reason = roleMoveData.Reason;
+                moved.DocDetails = new DocDetail { Desc = roleMoveData.OldRole, DescSecond = roleMoveData.NewRole, Reason = roleMoveData.Reason };
                 moved.Sum = (int)roleMoveData.Salary;
                 moved.DocType = (int)DocumentTypes.Moved;
                 moved.Title = "Перевод сотрудника.";
@@ -270,8 +278,7 @@ namespace ElectroDocument.Controllers.Services
                 dis.Date = dismissedData.Date;
                 dis.Number = dismissedData.Number;
                 dis.EmployeeId = empId;
-                dis.Desc = dismissedData.Desc;
-                dis.Reason = dismissedData.Reason;
+                dis.DocDetails = new DocDetail { Desc = dismissedData.Desc, Reason = dismissedData.Reason };
 
                 dis.DocType = (int)DocumentTypes.Dismissed;
                 dis.Title = "Расторжение трудового договора.";
@@ -285,7 +292,7 @@ namespace ElectroDocument.Controllers.Services
                 weekendDoc.Date = weekend.Date;
                 weekendDoc.Number = weekend.Number;
                 weekendDoc.EmployeeId = empId;
-                weekendDoc.Reason = weekend.Reason;
+                weekendDoc.DocDetails = new DocDetail { Reason = weekend.Reason };
                 weekendDoc.Date = weekend.Date;
                 weekendDoc.DateSecond = weekend.End;
 
@@ -309,10 +316,8 @@ namespace ElectroDocument.Controllers.Services
                 Doc encourage = new Doc();
                 encourage.Number = encourageData.Number;
                 encourage.EmployeeId = empId;
-                encourage.Reason = encourageData.Reason;
+                encourage.DocDetails = new DocDetail { Reason = encourageData.Reason, Desc = encourageData.Desc, DescSecond = encourageData.Role };
                 encourage.Date = encourageData.Date;
-                encourage.DescSecond = encourageData.Role;
-                encourage.Desc = encourageData.Desc;
                 encourage.Sum = encourageData.Salary;
 
                 encourage.DocType = (int)DocumentTypes.Encouragement;
@@ -327,7 +332,7 @@ namespace ElectroDocument.Controllers.Services
                 role.Number = roleDate.Number;
                 role.EmployeeId = empId;
                 role.Sum = roleDate.Salary;
-                role.Desc = roleDate.NewRole;
+                role.DocDetails = new DocDetail { Desc = roleDate.NewRole };
 
                 role.DocType = (int)DocumentTypes.AddRole;
                 role.Title = "О внесение изменений в штатное расписание.";
@@ -358,6 +363,7 @@ namespace ElectroDocument.Controllers.Services
         public void EditDocument(long empId, long editorId, long docId, ADocumentData rawData)
         {
             context.Docs.Load();
+            context.DocDetails.Load();
             Doc srcDoc = GetFirstDocVersionById(docId);
             
             Doc doc = FillStruct(empId, rawData);
@@ -376,10 +382,9 @@ namespace ElectroDocument.Controllers.Services
             version.DocId = docId;
             version.EditorId = editorId;
 
+
             context.DocumentVersions.Add(version);
             context.SaveChanges();
-
-
         }
 
         
@@ -389,6 +394,7 @@ namespace ElectroDocument.Controllers.Services
             context.Employees.Load();
             context.Roles.Load();
             context.Individuals.Load();
+            context.DocDetails.Load();
             context.DocumentVersions.Load();
 
             long docId = 0;
@@ -398,11 +404,12 @@ namespace ElectroDocument.Controllers.Services
                 Doc EmployeeContract = new Doc();
                 EmployeeContract.Number = contactData.Number;
                 EmployeeContract.Date = contactData.Date;
-                EmployeeContract.Desc = contactData.Role;
+                EmployeeContract.DocDetails = new DocDetail { Desc = contactData.Role };
                 EmployeeContract.Sum = contactData.Salary;
                 EmployeeContract.EmployeeId = empId;
                 EmployeeContract.DocType = (int)DocumentTypes.EmploymentContract;
                 EmployeeContract.Title = "Трудовой договор.";
+                context.Docs.Add(EmployeeContract);
                 context.Docs.Add(EmployeeContract);
                 context.SaveChanges();
                 docId = EmployeeContract.Id;
@@ -413,9 +420,12 @@ namespace ElectroDocument.Controllers.Services
                 moved.Date = roleMoveData.Date;
                 moved.Number = roleMoveData.Number;
                 moved.EmployeeId = empId;
-                moved.Desc = roleMoveData.OldRole;
-                moved.DescSecond = roleMoveData.NewRole;
-                moved.Reason = roleMoveData.Reason;
+                moved.DocDetails = new DocDetail 
+                { 
+                    Desc = roleMoveData.OldRole, 
+                    DescSecond = roleMoveData.NewRole, 
+                    Reason = roleMoveData.Reason 
+                };
                 moved.Sum = (int)roleMoveData.Salary;
                 moved.DocType = (int)DocumentTypes.Moved;
                 moved.Title = "Перевод сотрудника.";
@@ -430,8 +440,7 @@ namespace ElectroDocument.Controllers.Services
                 dis.Date = dismissedData.Date;
                 dis.Number = dismissedData.Number;
                 dis.EmployeeId = empId;
-                dis.Desc = dismissedData.Desc;
-                dis.Reason = dismissedData.Reason;
+                dis.DocDetails = new DocDetail { Desc = dismissedData.Desc, Reason = dismissedData.Reason };
 
                 dis.DocType = (int)DocumentTypes.Dismissed;
                 dis.Title = "Расторжение трудового договора.";
@@ -446,7 +455,7 @@ namespace ElectroDocument.Controllers.Services
                 weekendDoc.Date = weekend.Date;
                 weekendDoc.Number = weekend.Number;
                 weekendDoc.EmployeeId = empId;
-                weekendDoc.Reason = weekend.Reason;
+                weekendDoc.DocDetails = new DocDetail { Reason = weekend.Reason };
                 weekendDoc.Date = weekend.Date;
                 weekendDoc.DateSecond = weekend.End;
 
@@ -473,10 +482,10 @@ namespace ElectroDocument.Controllers.Services
                 Doc encourage = new Doc();
                 encourage.Number = encourageData.Number;
                 encourage.EmployeeId = empId;
-                encourage.Reason = encourageData.Reason;
+                encourage.DocDetails = new DocDetail { Reason = encourageData.Reason };
                 encourage.Date = encourageData.Date;
-                encourage.DescSecond = encourageData.Role;
-                encourage.Desc = encourageData.Desc;
+                encourage.DocDetails.DescSecond = encourageData.Role;
+                encourage.DocDetails.Desc = encourageData.Desc;
                 encourage.Sum = encourageData.Salary;
 
                 encourage.DocType = (int)DocumentTypes.Encouragement;
@@ -494,7 +503,7 @@ namespace ElectroDocument.Controllers.Services
                 role.Number = roleDate.Number;
                 role.EmployeeId = empId;
                 role.Sum = roleDate.Salary;
-                role.Desc = roleDate.NewRole;
+                role.DocDetails = new DocDetail { Desc = roleDate.NewRole };
 
                 role.DocType = (int)DocumentTypes.AddRole;
                 role.Title = "О внесение изменений в штатное расписание.";
@@ -523,6 +532,7 @@ namespace ElectroDocument.Controllers.Services
             context.Employees.Load();
             context.Roles.Load();
             context.Individuals.Load();
+            context.DocDetails.Load();
             Doc rawDocument = await context.Docs.Where(d => d.Id == id).FirstAsync();
             DocumentTypes type = (DocumentTypes)rawDocument.DocType;
             Document doc = new Document();
@@ -537,7 +547,7 @@ namespace ElectroDocument.Controllers.Services
                         Replace(doc, @"нДГ", rawDocument.Number.ToString());
                         Replace(doc, @"ДТСЕЙЧАС", DateTime.Now.ToString("dd.MM.yyyy"));
                         Replace(doc, @"ИМЯПОЛНОЕ", fullname);
-                        Replace(doc, @"ИМЯРОЛИ", rawDocument.Desc);
+                        Replace(doc, @"ИМЯРОЛИ", rawDocument.DocDetails.Desc);
                         Replace(doc, @"ДАТАПЕРВЫЙД", rawDocument.Date.ToString("dd.MM.yyyy"));
                         Replace(doc, @"ДАТАПЕРВЫЙДK", rawDocument.Date.ToString("dd.MM.yyyy"));
                         Replace(doc, @"АДРЕСС", rawDocument.Employee.Individual.Address);
@@ -555,9 +565,9 @@ namespace ElectroDocument.Controllers.Services
                         Replace(doc, @"ДАТАП", rawDocument.Date.ToString("dd.MM.yyyy"));
                         Replace(doc, @"нРаб", rawDocument.EmployeeId.Value.ToString());
                         Replace(doc, @"ИМЯП", fullname);
-                        Replace(doc, @"СТАРАЯРОЛЬ", rawDocument.Desc);
-                        Replace(doc, @"ПРИЧИНА", rawDocument.Reason);
-                        Replace(doc, @"НОВАЯРОЛЬ", rawDocument.DescSecond);
+                        Replace(doc, @"СТАРАЯРОЛЬ", rawDocument.DocDetails.Desc);
+                        Replace(doc, @"ПРИЧИНА", rawDocument.DocDetails.Reason);
+                        Replace(doc, @"НОВАЯРОЛЬ", rawDocument.DocDetails.DescSecond);
                         DateOnly date = employeeContract.Date;
 
                         Replace(doc, @"ДТ", date.Day.ToString());
@@ -587,8 +597,8 @@ namespace ElectroDocument.Controllers.Services
                         Replace(doc, @"ФИО", fullname);
                         Replace(doc, @"табель", rawDocument.EmployeeId.Value.ToString());
                         Replace(doc, @"РОЛЬ", rawDocument.Employee.Role.Title);
-                        Replace(doc, @"Причина", rawDocument.Reason);
-                        Replace(doc, @"ДоксОснование", rawDocument.Desc);
+                        Replace(doc, @"Причина", rawDocument.DocDetails.Reason);
+                        Replace(doc, @"ДоксОснование", rawDocument.DocDetails.Desc);
                     }
                     break;
                 case DocumentTypes.Weekend:
@@ -627,7 +637,7 @@ namespace ElectroDocument.Controllers.Services
                             Replace(doc, @"ДИПД", endPeriod.Year.ToString());
                         }
 
-                        if (rawDocument.Reason is null)
+                        if (rawDocument.DocDetails.Reason is null)
                         {
                             Replace(doc, @"АДН", count.ToString()); //n 
 
@@ -658,7 +668,7 @@ namespace ElectroDocument.Controllers.Services
                             Replace(doc, @"МКА", "");//n
                             Replace(doc, @"ГКА", "");//n
 
-                            Replace(doc, @"ПРИЧИНА", rawDocument.Reason); //?3
+                            Replace(doc, @"ПРИЧИНА", rawDocument.DocDetails.Reason); //?3
                             Replace(doc, @"БДН", count.ToString()); //
                             Replace(doc, @"ДБ", startDay.Day.ToString());//
                             Replace(doc, @"МБ", startDay.Month.ToString());//
@@ -676,7 +686,7 @@ namespace ElectroDocument.Controllers.Services
                         doc.LoadFromFile("OD-SR-051-1.docx");
                         Replace(doc, @"ДОКН", rawDocument.Number.ToString());//3
                         Replace(doc, @"ДАТАС", DateTime.Now.ToString("dd.MM.yyyy"));//3
-                        Replace(doc, @"РОЛЬНОВАЯ", rawDocument.Desc);//3
+                        Replace(doc, @"РОЛЬНОВАЯ", rawDocument.DocDetails.Desc);//3
                         Replace(doc, @"ОКЛАД", rawDocument.Sum.ToString());//3
                         Replace(doc, @"ДАТАП", rawDocument.Date.ToString("dd.MM.yyyy"));//3
                         Replace(doc, @"ResponsibleFN", ResponsibleFullname);//3
@@ -693,11 +703,11 @@ namespace ElectroDocument.Controllers.Services
                         Replace(doc, @"ДАТАС", DateTime.Now.ToString("dd.MM.yyyy"));//3
                         Replace(doc, @"ТАБЕЛЬН", rawDocument.EmployeeId.ToString());//3
                         Replace(doc, @"ФИО", fullname);//3
-                        Replace(doc, @"РОЛЬ", rawDocument.DescSecond);//3
-                        Replace(doc, @"ОПИСАНИЕ", rawDocument.Desc);//3
+                        Replace(doc, @"РОЛЬ", rawDocument.DocDetails.DescSecond);//3
+                        Replace(doc, @"ОПИСАНИЕ", rawDocument.DocDetails.Desc);//3
                         Replace(doc, @"СУММАПРОП", Utils.ConvertNumberToWords(sum));//3
                         Replace(doc, @"СУММАЦИФР", sum.ToString());//3
-                        Replace(doc, @"ПРИЧИНА", rawDocument.Reason);//3
+                        Replace(doc, @"ПРИЧИНА", rawDocument.DocDetails.Reason);//3
                     }
                     break;
             }

@@ -37,11 +37,8 @@ namespace ElectroDocument.Migrations
                     b.Property<DateOnly?>("DateThird")
                         .HasColumnType("date");
 
-                    b.Property<string>("Desc")
-                        .HasColumnType("text");
-
-                    b.Property<string>("DescSecond")
-                        .HasColumnType("text");
+                    b.Property<long?>("DocDetailsId")
+                        .HasColumnType("bigint(20)");
 
                     b.Property<sbyte?>("DocType")
                         .HasColumnType("tinyint(4)");
@@ -54,9 +51,6 @@ namespace ElectroDocument.Migrations
 
                     b.Property<long>("Number")
                         .HasColumnType("bigint(20)");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("text");
 
                     b.Property<long?>("Responsible")
                         .HasColumnType("bigint(20)");
@@ -76,11 +70,34 @@ namespace ElectroDocument.Migrations
                     b.HasKey("Id")
                         .HasName("PRIMARY");
 
+                    b.HasIndex(new[] { "DocDetailsId" }, "FK_DocDetails_Docs");
+
                     b.HasIndex(new[] { "EmployeeId" }, "FK_DocsNew_Employee");
 
                     b.HasIndex(new[] { "Responsible" }, "FK_DocsNew_Responsible");
 
                     b.ToTable("Docs");
+                });
+
+            modelBuilder.Entity("ElectroDocument.Controllers.AppContext.DocDetail", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint(20)");
+
+                    b.Property<string>("Desc")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DescSecond")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id")
+                        .HasName("PRIMARY");
+
+                    b.ToTable("DocDetails");
                 });
 
             modelBuilder.Entity("ElectroDocument.Controllers.AppContext.DocumentVersion", b =>
@@ -231,6 +248,11 @@ namespace ElectroDocument.Migrations
 
             modelBuilder.Entity("ElectroDocument.Controllers.AppContext.Doc", b =>
                 {
+                    b.HasOne("ElectroDocument.Controllers.AppContext.DocDetail", "DocDetails")
+                        .WithMany("Docs")
+                        .HasForeignKey("DocDetailsId")
+                        .HasConstraintName("FK_DocDetails_Docs");
+
                     b.HasOne("ElectroDocument.Controllers.AppContext.Employee", "Employee")
                         .WithMany("DocEmployees")
                         .HasForeignKey("EmployeeId")
@@ -240,6 +262,8 @@ namespace ElectroDocument.Migrations
                         .WithMany("DocResponsibleNavigations")
                         .HasForeignKey("Responsible")
                         .HasConstraintName("FK_DocsNew_Responsible");
+
+                    b.Navigation("DocDetails");
 
                     b.Navigation("Employee");
 
@@ -317,6 +341,11 @@ namespace ElectroDocument.Migrations
                     b.Navigation("DocumentVersionDocs");
 
                     b.Navigation("DocumentVersionNewDocs");
+                });
+
+            modelBuilder.Entity("ElectroDocument.Controllers.AppContext.DocDetail", b =>
+                {
+                    b.Navigation("Docs");
                 });
 
             modelBuilder.Entity("ElectroDocument.Controllers.AppContext.Employee", b =>

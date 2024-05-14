@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ElectroDocument.Migrations
 {
-    [DbContext(typeof(ElectroDocumentContext))]
+    [DbContext(typeof(ElectroDocumentDevContext))]
     [Migration("20240327070215_AddedAuthPolicyFix")]
     partial class AddedAuthPolicyFix
     {

@@ -9,9 +9,9 @@ namespace ElectroDocument.Controllers.Services
     {
 
         private IDistributedCache cache;
-        private ElectroDocumentContext db;
+        private ElectroDocumentDevContext db;
 
-        public RoleService(ElectroDocumentContext context, IDistributedCache distributedCache)
+        public RoleService(ElectroDocumentDevContext context, IDistributedCache distributedCache)
         {
             cache = distributedCache;
             db = context;

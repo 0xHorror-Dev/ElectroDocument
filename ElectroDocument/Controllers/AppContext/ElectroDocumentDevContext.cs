@@ -5,18 +5,20 @@ using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
 namespace ElectroDocument.Controllers.AppContext;
 
-public partial class ElectroDocumentContext : DbContext
+public partial class ElectroDocumentDevContext : DbContext
 {
-    public ElectroDocumentContext()
+    public ElectroDocumentDevContext()
     {
     }
 
-    public ElectroDocumentContext(DbContextOptions<ElectroDocumentContext> options)
+    public ElectroDocumentDevContext(DbContextOptions<ElectroDocumentDevContext> options)
         : base(options)
     {
     }
 
     public virtual DbSet<Doc> Docs { get; set; }
+
+    public virtual DbSet<DocDetail> DocDetails { get; set; }
 
     public virtual DbSet<DocumentVersion> DocumentVersions { get; set; }
 
@@ -30,7 +32,7 @@ public partial class ElectroDocumentContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=192.168.0.225;database=ElectroDocument;uid=ElectroDocument;pwd=ElDocsas2", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.6-mariadb"));
+        => optionsBuilder.UseMySql("server=192.168.0.225;database=ElectroDocumentDev;uid=ElectroDocument;pwd=ElectroDocument", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.6-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,24 +44,28 @@ public partial class ElectroDocumentContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
+            entity.HasIndex(e => e.DocDetailsId, "FK_DocDetails_Docs");
+
             entity.HasIndex(e => e.EmployeeId, "FK_DocsNew_Employee");
 
             entity.HasIndex(e => e.Responsible, "FK_DocsNew_Responsible");
 
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
-            entity.Property(e => e.Desc).HasColumnType("text");
-            entity.Property(e => e.DescSecond).HasColumnType("text");
+            entity.Property(e => e.DocDetailsId).HasColumnType("bigint(20)");
             entity.Property(e => e.DocType).HasColumnType("tinyint(4)");
             entity.Property(e => e.EmployeeId).HasColumnType("bigint(20)");
             entity.Property(e => e.Notified).HasColumnType("smallint(6)");
             entity.Property(e => e.Number).HasColumnType("bigint(20)");
-            entity.Property(e => e.Reason).HasColumnType("text");
             entity.Property(e => e.Responsible).HasColumnType("bigint(20)");
             entity.Property(e => e.ResponsibleNotified)
                 .HasDefaultValueSql("'0'")
                 .HasColumnType("smallint(6)");
             entity.Property(e => e.Sum).HasColumnType("int(11)");
             entity.Property(e => e.Title).HasMaxLength(50);
+
+            entity.HasOne(d => d.DocDetails).WithMany(p => p.Docs)
+                .HasForeignKey(d => d.DocDetailsId)
+                .HasConstraintName("FK_DocDetails_Docs");
 
             entity.HasOne(d => d.Employee).WithMany(p => p.DocEmployees)
                 .HasForeignKey(d => d.EmployeeId)
@@ -68,6 +74,16 @@ public partial class ElectroDocumentContext : DbContext
             entity.HasOne(d => d.ResponsibleNavigation).WithMany(p => p.DocResponsibleNavigations)
                 .HasForeignKey(d => d.Responsible)
                 .HasConstraintName("FK_DocsNew_Responsible");
+        });
+
+        modelBuilder.Entity<DocDetail>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.Property(e => e.Id).HasColumnType("bigint(20)");
+            entity.Property(e => e.Desc).HasColumnType("text");
+            entity.Property(e => e.DescSecond).HasColumnType("text");
+            entity.Property(e => e.Reason).HasColumnType("text");
         });
 
         modelBuilder.Entity<DocumentVersion>(entity =>

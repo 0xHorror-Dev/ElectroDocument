@@ -154,7 +154,7 @@
     <script>
         var Editing = true;
     </script>
-    @if (lastDoc.Reason is null)
+    @if (lastDoc.DocDetails.Reason is null)
     {
         <script>
             var haveReason = false;
@@ -283,19 +283,19 @@ else
 
             if (haveReason) {
                 setValueForListbox('removeReason', 'no');
-                document.getElementById('Reason').value = '@Html.Raw(lastDoc.Reason)';
+                document.getElementById('Reason').value = '@Html.Raw(lastDoc.DocDetails.Reason)';
             }
             else
             {
                 setValueForListbox('removeReason', 'yes');
             }
-            //console.log('desc is  @Html.Raw(lastDoc.Desc)');
-            //console.log('desc2 is @Html.Raw(lastDoc.DescSecond)');
-            //setValueForListbox('newPosition', '@Html.Raw(lastDoc.DescSecond)');
-            //setValueForListbox('reason', '@lastDoc.Reason');
+            //console.log('desc is  @Html.Raw(lastDoc.DocDetails.Desc)');
+            //console.log('desc2 is @Html.Raw(lastDoc.DocDetails.DescSecond)');
+            //setValueForListbox('newPosition', '@Html.Raw(lastDoc.DocDetails.DescSecond)');
+            //setValueForListbox('reason', '@lastDoc.DocDetails.Reason');
             //setValueForListbox('salary', @lastDoc.Sum);
             //setValueForListbox('docNumber', '@lastDoc.Number');
-            //setValueForListbox('date', '@lastDoc.DescSecond');
+            //setValueForListbox('date', '@lastDoc.DocDetails.DescSecond');
             //document.getElementById('salary').value = @Html.Raw(lastDoc.Sum);
 
             toggleReasonField();

@@ -13,7 +13,7 @@ using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<ElectroDocumentContext>();
+builder.Services.AddDbContext<ElectroDocumentDevContext>();
 builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<RoleService>();
 builder.Services.AddTransient<DocsService>();

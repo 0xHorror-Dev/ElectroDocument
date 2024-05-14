@@ -9,9 +9,9 @@ namespace ElectroDocument.Controllers.Services
     public class DocumentVersionService
     {
         private IDistributedCache cache;
-        private ElectroDocumentContext db;
+        private ElectroDocumentDevContext db;
 
-        public DocumentVersionService(ElectroDocumentContext context, IDistributedCache distributedCache)
+        public DocumentVersionService(ElectroDocumentDevContext context, IDistributedCache distributedCache)
         {
             cache = distributedCache;
             db = context;
