@@ -245,7 +245,7 @@ else
             setValueForListbox('Role', '@Html.Raw(lastDoc.DescSecond)');
             document.getElementById('salary').value = @Html.Raw(lastDoc.Sum);
             document.getElementById('docNumber').value = @lastDoc.Number;
-            document.getElementById('desc').value = @lastDoc.Desc;
+            document.getElementById('desc').value = '@Html.Raw(lastDoc.Desc)';
             document.getElementById('reason').value = '@Html.Raw(lastDoc.Reason)';
             var today = new Date('@GetDateForJs(lastDoc.Date)');
             console.log(today);

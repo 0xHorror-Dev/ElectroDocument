@@ -154,25 +154,30 @@
     <script>
         var Editing = true;
     </script>
+    @if (lastDoc.Reason is null)
+    {
+        <script>
+            var haveReason = false;
+        </script>
+    }
+    else
+    {
+        <script>
+            var haveReason = true;
+        </script>
+
+    }
 }
 else
 {
     <script>
         var Editing = false;
     </script>
-    @if (lastDoc.Reason is null)
-    {
-        <script>
-        var haveReason = true;
-        </script>
-    }
-    else
-    {
-        <script>
-            var haveReason = false;
-        </script>
 
-    }
+    <script>
+        var haveReason = false;
+    </script>
+
 }
 
 

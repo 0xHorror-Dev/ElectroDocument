@@ -168,6 +168,13 @@ else
         var formData = new FormData(form);
         formData.append("id", `@userId`);
 
+        if (Editing) {
+            formData.append("docId", `@docId`);
+            formData.append("editorId", `@editorId`);
+            console.log(formData);
+        }
+
+
         fetch("/Docs/GenerateDismissed", {
             method: "POST",
             body: formData
@@ -220,8 +227,8 @@ else
             console.log(today);
 
             document.getElementById('date').value = today.toISOString().substr(0, 10);
-            document.getElementById('reason').value = @Html.Raw(lastDoc.Reason);
-            document.getElementById('Desc').value = @Html.Raw(lastDoc.Desc);
+            document.getElementById('reason').value = '@Html.Raw(lastDoc.Reason)';
+            document.getElementById('Desc').value = '@Html.Raw(lastDoc.Desc)';
 
             //console.log('desc is  @Html.Raw(lastDoc.Desc)');
             //console.log('desc2 is @Html.Raw(lastDoc.DescSecond)');

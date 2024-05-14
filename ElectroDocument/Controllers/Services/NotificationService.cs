@@ -1,6 +1,8 @@
-﻿using ElectroDocument.Controllers.AppContext;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using ElectroDocument.Controllers.AppContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using System.Collections;
 
 namespace ElectroDocument.Controllers.Services
 {
@@ -8,18 +10,23 @@ namespace ElectroDocument.Controllers.Services
     {
         private ElectroDocumentContext context;
         private IDistributedCache distributedCache;
+        private DocsService docs;
 
-        public NotificationService(ElectroDocumentContext context, IDistributedCache distributedCache)
+        public NotificationService(ElectroDocumentContext context, IDistributedCache distributedCache, DocsService docs)
         {
             this.context = context;
             this.distributedCache = distributedCache;
+            this.docs = docs;
         }
 
         public async Task<int> GetNotificationCount(long empId)
         {
             await context.Docs.LoadAsync();
-            int simpleDocCount = await context.Docs.CountAsync(doc => doc.EmployeeId == empId && !Convert.ToBoolean(doc.Notified));
-            int responsibleDocCount = await context.Docs.CountAsync(doc => doc.Responsible == empId && !Convert.ToBoolean(doc.ResponsibleNotified));
+            List<Doc> qdocs =  new List<Doc>(docs.GetFullDocsByUserId(empId).AsQueryable());
+            
+
+            int simpleDocCount = qdocs.Count(doc => doc.EmployeeId == empId && !Convert.ToBoolean(doc.Notified));
+            int responsibleDocCount = qdocs.Count(doc => doc.Responsible == empId && !Convert.ToBoolean(doc.ResponsibleNotified));
 
             return simpleDocCount + responsibleDocCount;
         }
@@ -28,7 +35,9 @@ namespace ElectroDocument.Controllers.Services
         public async Task<IEnumerable<Doc>> GetUnseenDocuments(long empId)
         {
             await context.Docs.LoadAsync();
-            return context.Docs.Where(doc => (doc.EmployeeId == empId || doc.Responsible == empId)
+            List<Doc> qdocs = new List<Doc>(docs.GetFullDocsByUserId(empId).AsQueryable());
+
+            return qdocs.Where(doc => (doc.EmployeeId == empId || doc.Responsible == empId)
                 &&
                 (!Convert.ToBoolean(doc.Notified) || !Convert.ToBoolean(doc.ResponsibleNotified))
                 );
@@ -54,9 +63,10 @@ namespace ElectroDocument.Controllers.Services
         public async Task<bool> Notified(long empId, long docId)
         {
             await context.Docs.LoadAsync();
+            List<Doc> qdocs = new List<Doc>(docs.GetFullDocsByUserId(empId).AsQueryable());
 
-            Doc? doc = await context.Docs.Where(
-                d => d.EmployeeId == empId || d.Responsible == empId).FirstAsync();
+            Doc? doc =  qdocs.Where(
+                d => d.EmployeeId == empId || d.Responsible == empId).First();
             if (doc is not null)
             {
                 if (doc.EmployeeId == empId)

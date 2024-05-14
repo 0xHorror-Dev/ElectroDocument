@@ -216,7 +216,7 @@ namespace ElectroDocument.Controllers.Services
                 return docVer.DocIdSrcNavigation;
             }
 
-            return GetLastDocVersionById(docVer.DocIdSrc);
+            return GetFirstDocVersionById(docVer.DocIdSrc);
         }
 
         public Doc? GetLastEmployeeContract(long UserId)
@@ -358,6 +358,8 @@ namespace ElectroDocument.Controllers.Services
         public void EditDocument(long empId, long editorId, long docId, ADocumentData rawData)
         {
             context.Docs.Load();
+            Doc srcDoc = GetFirstDocVersionById(docId);
+            
             Doc doc = FillStruct(empId, rawData);
             context.Docs.Add(doc);
             context.SaveChanges();
@@ -365,7 +367,6 @@ namespace ElectroDocument.Controllers.Services
             context.DocumentVersions.Load();
             long newDocId = doc.Id;
 
-            Doc srcDoc = GetFirstDocVersionById(docId);
             DocumentVersion version = new DocumentVersion();
             //context.Docs.Find(docId);
 
@@ -437,6 +438,7 @@ namespace ElectroDocument.Controllers.Services
 
                 context.Docs.Add(dis);
                 context.SaveChanges();
+                docId = dis.Id;
             }
             else if (rawdata is WeekendData weekend)
             {

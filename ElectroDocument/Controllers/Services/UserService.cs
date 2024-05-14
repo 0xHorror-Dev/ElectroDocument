@@ -126,12 +126,10 @@ namespace ElectroDocument.Controllers.Services
                 emp.Individual = new Individual { Address = usersModel.Address, Name = usersModel.Name, Patronymic = usersModel.Patronymic, PhoneNumber = usersModel.PhoneNumber, Surname = usersModel.Surname };
                 emp.Credentials = new EmployeeCredential { Password = usersModel.Password, UserName = usersModel.UserName };
                 db.Employees.Add(emp);
-                var task = db.SaveChangesAsync();
-                task.Wait();
+                await db.SaveChangesAsync();
                 db.Employees.Load();
                 db.EmployeeCredentials.Load();
                 long empId = db.Employees.Where(emp => emp.Credentials.UserName == usersModel.UserName).First().Id;
-                await db.SaveChangesAsync();
                 return empId;
             }
             catch (Exception ex)

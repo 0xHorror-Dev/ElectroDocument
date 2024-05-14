@@ -332,7 +332,6 @@ namespace ElectroDocument.Controllers
             data.Reason = model.Reason;
             data.End = model.End;
 
-            service.CreateDocument(model.id, data);
             if (model.docId is not null)
             {
                 if (model.editorId is null) return Results.StatusCode(StatusCodes.Status400BadRequest);
