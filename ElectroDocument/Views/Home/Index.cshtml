@@ -1,8 +1,34 @@
-﻿@{
+﻿@using ElectroDocument.Controllers.AppContext
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@using ElectroDocument.Controllers.Services;
+
+@inject UserService userService;
+@inject IAuthorizationService AuthorizationService
+
+@{
     ViewData["Title"] = "Электронный документооборот";
+    string letter = "Здравствуйте";
+    string role = "";
+    @if (Context.User.Identity.IsAuthenticated)
+    {
+        var userClaims = User.Claims;
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        Employee? emp = await userService.GetEmployeeAsync(userId);
+        letter = $"Здравствуйте, {emp.Individual.Surname}";
+        role = emp.Role.Title;
+    }
+    else
+    {
+
+    }
 }
 
+
+
 <div class="text-center">
-    <h1 class="display-4">Здравствуйте</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">@letter</h1>
+    <h1 class="display-4">@role</h1>
+    <p>Система документооборота ElectroDocument</a>.</p>
 </div>

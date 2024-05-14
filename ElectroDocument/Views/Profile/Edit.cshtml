@@ -1,4 +1,11 @@
 ﻿@using ElectroDocument.Controllers.AppContext;
+@using ElectroDocument.Controllers.Services;
+@using Microsoft.AspNetCore.Identity;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject UserService userService;
+@inject IAuthorizationService AuthorizationService;
+
 
 @{
     ViewData["Title"] = $"Профиль - {Model.FullName}";
@@ -13,6 +20,7 @@
     var docs = Model.docs;
     IEnumerable<Role> roles = Model.Roles;
     long roleid = @Position.Id;
+    Employee? emp = await userService.GetEmployeeAsync(id.ToString());
 
 }
 
@@ -46,15 +54,30 @@
     <div class="container">
         <img src="@ImageUrl" alt="Profile Image" class="profile-img">
         <h1 class="fullname">@FullName</h1>
-        <select class="position" onchange="toggleButton()">
-            @foreach(Role r in roles)
+        @{
+            var res = await AuthorizationService.AuthorizeAsync(User, "Admin");
+            @if (res.Succeeded)
             {
-                <option value="@r.Id">@r.Title</option>
+                <select class="position" onchange="toggleButton()">
+                    @foreach (Role r in roles)
+                    {
+                        <option value="@r.Id">@r.Title</option>
+                    }
+                </select>
+                <button id="submitButton" style="display: none;" onclick="submitForm()">Отправить</button>
+                <div id="position_message" style="display: none;"></div>
             }
-        </select>
-        <button id="submitButton" style="display: none;" onclick="submitForm()">Отправить</button>
-        <div id="position_message" style="display: none;"></div>
+            else
+            {
+                <div>
+                    <p>Должность: @Position.Title</p>
+                </div>
+            }
+        }
+
     </div>
+
+
 
 
     <div class="form-container">
@@ -64,19 +87,46 @@
             <input type="hidden" id="id" name="id" value="@id">
             <button type="submit" class="btn-primary">Сменить изображение профиля</button>
         </form>
-
-        <h1>Изменение пароля</h1>
-        <form method="post" action="/Profile/ChangePassword">
-            <input type="password" name="currentPassword" placeholder="Текущий пароль" required>
-            <input type="password" name="newPassword" placeholder="Новый пароль" required>
-            <input type="hidden" id="id" name="id" value="@id">
-            @if (passwordError is not null)
+        @{
+            @if (res.Succeeded)
             {
-                <p class="error-message">Ошибка: @passwordError</p>
+                <h1>Изменение пароля</h1>
+                <form method="post" action="/Profile/ChangePassword">
+                    <input type="password" name="currentPassword" placeholder="Текущий пароль" required>
+                    <input type="password" name="newPassword" placeholder="Новый пароль" required>
+                    <input type="hidden" id="id" name="id" value="@id">
+                    @if (passwordError is not null)
+                    {
+                        <p class="error-message">Ошибка: @passwordError</p>
+                    }
+                    <button type="submit" class="btn-primary">Изменить пароль</button>
+                </form>
             }
-            <button type="submit" class="btn-primary">Изменить пароль</button>
-        </form>
+        }
+
     </div>
+
+    <h2>Изменение Персональной Информации</h2>
+    <form id="changeForm">
+        <label for="surname">Фамилия:</label><br>
+        <input type="text" class="form-control" id="surname" name="surname" value="@Model.Surname"><br><br>
+
+        <label for="name">Имя:</label><br>
+        <input type="text" class="form-control" id="name" name="name" value="@Model.Name"><br><br>
+
+        <label for="patronymic">Отчество:</label><br>
+        <input type="text" class="form-control" id="patronymic" name="patronymic" value="@Model.Patronymic"><br><br>
+
+        <label for="address">Адрес:</label><br>
+        <input type="text" class="form-control" id="address" name="address" value="@emp.Individual.Address"><br><br>
+
+        <label for="phone">Номер телефона:</label><br>
+        <input type="text" class="form-control" id="phone" name="phone" value="@emp.Individual.PhoneNumber"><br><br>
+
+        <button type="submit">Изменить</button>
+    </form>
+    <div id="message"></div>
+
     <h1>Сформировать Документы</h1>
     <a href="/Docs/EmployeeContract?id=@id">Сформировать трудовой договор</a></br>
     <a href="/Docs/Moved?id=@id">Сформировать приказ о переводе</a></br>
@@ -97,7 +147,7 @@
             <tbody>
                 @foreach (Doc doc in docs)
                 {
-                    <tr onclick="window.location.href='/Docs/GenerateDocument?id=@doc.Id';">
+                    <tr onclick="window.location.href='/Docs/View?id=@doc.Id';">
                         <td>@doc.Number</td>
                         <td>@doc.Date</td>
                         <td>@doc.Title</td>
@@ -110,6 +160,31 @@
 
 
 <script>
+
+    document.getElementById('changeForm').addEventListener('submit', function (event) {
+        event.preventDefault(); // Предотвращаем стандартное поведение формы
+
+        const formData = new FormData(this); // Создаем объект FormData для сбора данных формы
+        formData.append("id", `@id`);
+        // Отправляем данные на сервер
+        fetch('/Profile/Individual', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при выполнении запроса: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('message').textContent = 'Успешно изменено!';
+                // Дополнительные действия после успешного обновления данных
+            })
+            .catch(error => {
+                document.getElementById('message').textContent = 'Произошла ошибка: ' + error.message;
+            });
+    });
     document.querySelector('.position').value = "@roleid";
 
     function toggleButton() {

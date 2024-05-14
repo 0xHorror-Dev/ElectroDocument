@@ -1,10 +1,12 @@
-﻿@using Microsoft.AspNetCore.Authorization
+﻿@using ElectroDocument.Controllers.AppContext
+@using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Identity
 @using ElectroDocument.Controllers.Services;
 
-@inject NotificationService NotificationService
-@inject IAuthorizationService AuthorizationService
+@inject NotificationService NotificationService;
+@inject UserService userService;
+@inject IAuthorizationService AuthorizationService;
 
 <!DOCTYPE html>
 <html lang="en">
@@ -18,16 +20,25 @@
     <style>
         .nav-item-photo
         {
-            max-width: 128px;
-            max-height: 128px;
-            border-radius: 50%;
+            max-width: 98px;
+            max-height: 98px;
+            border-radius: 40%;
         }
 
+        .nav-item-exit
+        {
+            padding-top: 10px;
+        }
         .nav-link-exit
         {
             max-width: 28px;
             max-height: 28px;
-            border-radius: 50%;
+            border-radius: 80%;
+
+        }
+
+        .nav-link-exit:hover {
+            background: gray;
         }
 
         .nav-link-notify
@@ -81,19 +92,19 @@
                         </li>
                         @if (@Context.User.Identity.IsAuthenticated)
                         {
-                            var res = await AuthorizationService.AuthorizeAsync(User, "Admin");
+                            var res = await AuthorizationService.AuthorizeAsync(User, "Editing");
                             @if (res.Succeeded)
                             {
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Index">Пользователи</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Docs" asp-action="Index">Мои документы</a>
-                                </li>
-                                <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Role" asp-action="Index">Должности</a>
                                 </li>
                             }
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Docs" asp-action="Index">Мои документы</a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Profile" asp-action="Index">Профиль</a>
                             </li>
@@ -104,17 +115,21 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Index">Авторизация</a>
                             </li>
                         }
-                        <li class="nav-item">
+@*                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Приватность</a>
+                        </li> *@
+                        <li class="nav-item">
+                            <hr class="dropdown-divider">
                         </li>
                     </ul>
                     @if (@Context.User.Identity.IsAuthenticated)
                     {
                         var userClaims = User.Claims;
                         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                        Employee? emp = await userService.GetEmployeeAsync(userId);
                         <ul class="navbar-nav ml-auto">
                             <li class="nav-item">
-                                <span class="nav-link text-dark">@Context.User.Identity.Name</span> <!-- ФИО пользователя -->
+                                <span class="nav-link text-dark">@emp.Individual.Name @emp.Individual.Surname</span> <!-- ФИО пользователя -->
                             </li>
 
                             <li class="nav-item">
@@ -128,7 +143,7 @@
                                     </a>
                                 </div>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item nav-item-exit">
                                 <img src="https://www.svgrepo.com/download/42231/exit.svg" alt="Exit" class="nav-link-exit nav-item-photo text-dark"> <!-- Кнопка выхода -->
                             </li>
 
@@ -146,7 +161,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2024 - ElectroDocument - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2024 - ElectroDocument @* - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a> *@
         </div>
     </footer>
     @if (@Context.User.Identity.IsAuthenticated)

@@ -1,11 +1,15 @@
 ﻿@using ElectroDocument.Controllers.AppContext;
 @using Microsoft.EntityFrameworkCore.Metadata;
+@using Microsoft.AspNetCore.Authorization;
 @using System.Collections;
 @{
 
     ViewData["Title"] = "Электронный документооборот";
     IEnumerable<Role> table = Model.rolesTable;
 }
+
+@inject IAuthorizationService AuthorizationService
+
 
 <style>
     table {
@@ -29,7 +33,13 @@
     }
 </style>
 
-<a class="nav-link text-dark" asp-area="" asp-controller="Role" asp-action="Create">Создать</a>
+@{
+    var res = await AuthorizationService.AuthorizeAsync(User, "Admin");
+    @if (res.Succeeded)
+    {
+        <a class="nav-link text-dark" asp-area="" asp-controller="Role" asp-action="Create">Создать</a>
+    }
+}
 
 <table>
     <thead>

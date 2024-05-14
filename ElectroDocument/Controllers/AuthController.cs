@@ -65,7 +65,7 @@ namespace ElectroDocument.Controllers
                         issuer: AuthOptions.ISSUER,
                         audience: AuthOptions.AUDIENCE,
                         claims: claims,
-                        expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
+                        expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(60)),
                         signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
                 
                 var response = new

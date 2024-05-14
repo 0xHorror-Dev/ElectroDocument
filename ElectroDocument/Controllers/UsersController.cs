@@ -11,7 +11,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ElectroDocument.Controllers
 {
-    [Authorize(Policy = "Admin")]
+    [Authorize(Policy = "Editing")]
     public class UsersController : Controller
     {
         UserService service;
@@ -25,7 +25,7 @@ namespace ElectroDocument.Controllers
             this.roleService=roleService;
         }
 
-
+        [Authorize(Policy = "Admin")]
         async public Task<ActionResult> Register()
         {
             return View(new { roles = await roleService.GetRolesAsync()});

@@ -1,0 +1,115 @@
+﻿@using ElectroDocument.Controllers.AppContext;
+@using ElectroDocument.Controllers.Services;
+@using Microsoft.AspNetCore.Authorization
+
+@{
+    ViewData["Title"] = "Предпросмотр документа";
+    long docId = Model.Id;
+}
+
+@inject DocumentVersionService docVersionService
+@inject IAuthorizationService AuthorizationService
+
+<style>
+
+    .containerView
+    {
+        display: flex;
+        height: 100vh;
+    }
+
+    .DocViewLeft
+    {
+        width: 80%;
+        height: 100%;
+        padding: 20px;
+    }
+
+    .docViewFrame {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    select {
+        width: 50%;
+        height: 50px;
+    }
+
+    button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-back {
+        width: 10%;
+    }
+</style>
+<h2>Предпросмотр документа</h2>
+<button class="btn btn-secondary btn-sm btn-back" onclick="window.history.back();"> Вернуться назад </button>
+<div class="containerView">
+    <div class="DocViewLeft">
+        <iframe id="DocViewFrame" class="docViewFrame" src="/Docs/GenerateDocumentPDF?id=@docId"></iframe>
+    </div>
+    <div class="DocViewRight">
+        <select class="form-select" id="listbox">
+            @foreach(DocumentVersion version in docVersionService.GetDocumentVersion(docId).OrderBy(ver=>ver.Id))
+            {
+
+                <option value="@(version.NewDocId is not null ? version.NewDocId : version.DocIdSrc)">@version.Date.ToString()</option>
+            }
+        </select>
+        <button onclick="showSelectedItem()">Загрузить</button>
+        <button onclick="downloadDocument()">Скачать docx</button>
+        @{
+            var res = await AuthorizationService.AuthorizeAsync(User, "Editing");
+            @if (res.Succeeded)
+            {
+                <button onclick="editDocument()">Сформировать новую версию</button>
+            }
+        }
+        </div>
+</div>
+
+<script>
+    var documentId = @docId;
+
+    setValueForListbox("listbox", documentId);
+    showSelectedItem();
+
+    function setValueForListbox(listboxname, vvalue) {
+        var positionSelect = document.getElementById(listboxname);
+        for (var i, j = 0; i = positionSelect.options[j]; j++) {
+            if (i.value == vvalue) {
+                positionSelect.selectedIndex = j;
+                break;
+            }
+        }
+    }
+
+    function showSelectedItem() {
+        var selectBox = document.getElementById("listbox");
+        var selectedValue = selectBox.value;
+        var docViewFrame = document.getElementById("DocViewFrame");
+        documentId = selectedValue;
+        docViewFrame.src = '/Docs/GenerateDocumentPDF?id=' + selectedValue;
+        console.log(documentId)
+    }
+    function downloadDocument() {
+        window.location.href = '/Docs/GenerateDocument?id=' + documentId;
+    }
+    function editDocument() {
+        window.location.href = '/Docs/EditDoc?id=' + documentId;
+    }
+
+
+</script>

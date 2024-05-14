@@ -17,6 +17,7 @@ builder.Services.AddDbContext<ElectroDocumentContext>();
 builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<RoleService>();
 builder.Services.AddTransient<DocsService>();
+builder.Services.AddTransient<DocumentVersionService>();
 builder.Services.AddTransient<NotificationService>();
 
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -56,7 +57,9 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Admin", policy => policy.RequireClaim("RolePolicy", new[] { "Admin" }));
     options.AddPolicy("User", policy => policy.RequireClaim("RolePolicy", new[] { "User" }));
-    options.AddPolicy("AdminOrUser", policy => policy.RequireClaim("RolePolicy", new[] { "User", "Admin" }));
+    options.AddPolicy("Editor", policy => policy.RequireClaim("RolePolicy", new[] { "Editor" }));
+    options.AddPolicy("AdminOrUser", policy => policy.RequireClaim("RolePolicy", new[] { "User", "Admin", "Editor" }));
+    options.AddPolicy("Editing", policy => policy.RequireClaim("RolePolicy", new[] { "Admin", "Editor" }));
 });
 
 var app = builder.Build();

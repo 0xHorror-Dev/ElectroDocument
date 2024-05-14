@@ -11,9 +11,12 @@ using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Pomelo.EntityFrameworkCore.MySql.Query.ExpressionTranslators.Internal;
+using System.Reflection.Metadata;
 
 namespace ElectroDocument.Controllers
 {
+    public record IndividualUpdateRequest(string Id, string? Surname, string? Name, string? Patronymic, string? Address, string? Phone);
+
     [Authorize(Policy= "AdminOrUser")]
     public class ProfileController : Controller
     {
@@ -114,6 +117,16 @@ namespace ElectroDocument.Controllers
             return Redirect("/Profile?PasswordError=Error");
         }
 
+
+        [Authorize(Policy = "Editing")]
+        [HttpPost]
+        public async Task<IResult> Individual(IndividualUpdateRequest updateRequest)
+        {
+            await userService.UpdateEmployee(updateRequest.Id, updateRequest.Surname, updateRequest.Name, updateRequest.Patronymic, updateRequest.Address, updateRequest.Phone);
+            return Results.Ok(updateRequest);
+        }
+
+
         [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<ActionResult> AdminChangeProfilePicture([FromForm]long id)
@@ -177,7 +190,7 @@ namespace ElectroDocument.Controllers
             return Redirect("Home");
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Editing")]
         public async Task<ActionResult> Edit(long id)
         {
             Employee? emp = await userService.GetEmployeeAsync(id.ToString());

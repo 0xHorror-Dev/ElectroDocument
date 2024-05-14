@@ -13,13 +13,13 @@ public partial class Employee
 
     public long RoleId { get; set; }
 
-    public string? ImageUrl { get; set; }
-
     public virtual EmployeeCredential Credentials { get; set; } = null!;
 
     public virtual ICollection<Doc> DocEmployees { get; set; } = new List<Doc>();
 
     public virtual ICollection<Doc> DocResponsibleNavigations { get; set; } = new List<Doc>();
+
+    public virtual ICollection<DocumentVersion> DocumentVersions { get; set; } = new List<DocumentVersion>();
 
     public virtual Individual Individual { get; set; } = null!;
 

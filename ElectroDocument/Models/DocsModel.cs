@@ -12,7 +12,8 @@ namespace ElectroDocument.Models
     {
         public string Fullname { get; set; }
         public long id { get; set; }
-        public IEnumerable<Role> Roles { get; set; }    
+        public IEnumerable<Role> Roles { get; set; }
+        public long? DocId { get; set; }
     }
 
     public class GenerateEmployeeContractModel
@@ -21,6 +22,8 @@ namespace ElectroDocument.Models
         public string salary { get; set; }
         public string position { get; set; }
         public long id { get;set; }
+        public long? docId { get; set; }
+        public long? editorId { get; set; }
 
         public DateOnly date { get; set; }
 
@@ -35,6 +38,9 @@ namespace ElectroDocument.Models
         public long salary { get; set; }
         public long id { get; set; }
 
+        public long? docId { get; set; }
+        public long? editorId { get; set; }
+
         public DateOnly date { get; set; }
 
     }
@@ -47,6 +53,9 @@ namespace ElectroDocument.Models
         public string Desc { get; set; }
         public long id { get; set; }
 
+
+        public long? docId { get; set; }
+        public long? editorId { get; set; }
         public DateOnly date { get; set; }
 
     }
@@ -58,6 +67,9 @@ namespace ElectroDocument.Models
         public string? Reason { get; set; }
         public long id { get; set; }
 
+
+        public long? docId { get; set; }
+        public long? editorId { get; set; }
         public DateOnly date { get; set; }
 
     }
@@ -68,6 +80,8 @@ namespace ElectroDocument.Models
         public string Role { get; set; }
         public string Salary{ get; set; }
         public long id { get; set; }
+        public long? docId { get; set; }
+        public long? editorId { get; set; }
 
         public DateOnly date { get; set; }
 
@@ -83,6 +97,10 @@ namespace ElectroDocument.Models
         public string Role { get; set; }
         public int salary { get; set; }
         public long id { get; set; }
+
+
+        public long? docId { get; set; }
+        public long? editorId { get; set; }
 
         public DateOnly date { get; set; }
 

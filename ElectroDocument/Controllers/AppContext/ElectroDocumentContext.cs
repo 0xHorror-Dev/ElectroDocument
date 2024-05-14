@@ -18,6 +18,8 @@ public partial class ElectroDocumentContext : DbContext
 
     public virtual DbSet<Doc> Docs { get; set; }
 
+    public virtual DbSet<DocumentVersion> DocumentVersions { get; set; }
+
     public virtual DbSet<Employee> Employees { get; set; }
 
     public virtual DbSet<EmployeeCredential> EmployeeCredentials { get; set; }
@@ -44,8 +46,6 @@ public partial class ElectroDocumentContext : DbContext
 
             entity.HasIndex(e => e.Responsible, "FK_DocsNew_Responsible");
 
-            entity.HasIndex(e => e.Number, "Number").IsUnique();
-
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
             entity.Property(e => e.Desc).HasColumnType("text");
             entity.Property(e => e.DescSecond).HasColumnType("text");
@@ -55,7 +55,9 @@ public partial class ElectroDocumentContext : DbContext
             entity.Property(e => e.Number).HasColumnType("bigint(20)");
             entity.Property(e => e.Reason).HasColumnType("text");
             entity.Property(e => e.Responsible).HasColumnType("bigint(20)");
-            entity.Property(e => e.ResponsibleNotified).HasColumnType("smallint(6)");
+            entity.Property(e => e.ResponsibleNotified)
+                .HasDefaultValueSql("'0'")
+                .HasColumnType("smallint(6)");
             entity.Property(e => e.Sum).HasColumnType("int(11)");
             entity.Property(e => e.Title).HasMaxLength(50);
 
@@ -66,6 +68,47 @@ public partial class ElectroDocumentContext : DbContext
             entity.HasOne(d => d.ResponsibleNavigation).WithMany(p => p.DocResponsibleNavigations)
                 .HasForeignKey(d => d.Responsible)
                 .HasConstraintName("FK_DocsNew_Responsible");
+        });
+
+        modelBuilder.Entity<DocumentVersion>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("DocumentVersion");
+
+            entity.HasIndex(e => e.DocId, "FK1_DocId_Docs_Id");
+
+            entity.HasIndex(e => e.NewDocId, "FK2_NewDocId_Docs_Id");
+
+            entity.HasIndex(e => e.DocIdSrc, "FK3_DocIdSrc_Docs_Id");
+
+            entity.HasIndex(e => e.EditorId, "FK4_EditorId_Employee_Id");
+
+            entity.Property(e => e.Id).HasColumnType("int(11)");
+            entity.Property(e => e.Date).HasColumnType("datetime");
+            entity.Property(e => e.DocId).HasColumnType("bigint(20)");
+            entity.Property(e => e.DocIdSrc).HasColumnType("bigint(20)");
+            entity.Property(e => e.EditorId).HasColumnType("bigint(20)");
+            entity.Property(e => e.NewDocId).HasColumnType("bigint(20)");
+
+            entity.HasOne(d => d.Doc).WithMany(p => p.DocumentVersionDocs)
+                .HasForeignKey(d => d.DocId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK1_DocId_Docs_Id");
+
+            entity.HasOne(d => d.DocIdSrcNavigation).WithMany(p => p.DocumentVersionDocIdSrcNavigations)
+                .HasForeignKey(d => d.DocIdSrc)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK3_DocIdSrc_Docs_Id");
+
+            entity.HasOne(d => d.Editor).WithMany(p => p.DocumentVersions)
+                .HasForeignKey(d => d.EditorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK4_EditorId_Employee_Id");
+
+            entity.HasOne(d => d.NewDoc).WithMany(p => p.DocumentVersionNewDocs)
+                .HasForeignKey(d => d.NewDocId)
+                .HasConstraintName("FK2_NewDocId_Docs_Id");
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -112,16 +155,16 @@ public partial class ElectroDocumentContext : DbContext
             entity.ToTable("Individual");
 
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
-            entity.Property(e => e.Address).HasMaxLength(50);
+            entity.Property(e => e.Address).HasMaxLength(250);
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("''");
             entity.Property(e => e.Patronymic)
-                .HasMaxLength(50)
+                .HasMaxLength(250)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(250);
             entity.Property(e => e.Surname)
-                .HasMaxLength(50)
+                .HasMaxLength(250)
                 .HasDefaultValueSql("''");
         });
 

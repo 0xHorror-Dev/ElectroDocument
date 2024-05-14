@@ -35,6 +35,12 @@ public partial class Doc
 
     public short? ResponsibleNotified { get; set; }
 
+    public virtual ICollection<DocumentVersion> DocumentVersionDocIdSrcNavigations { get; set; } = new List<DocumentVersion>();
+
+    public virtual ICollection<DocumentVersion> DocumentVersionDocs { get; set; } = new List<DocumentVersion>();
+
+    public virtual ICollection<DocumentVersion> DocumentVersionNewDocs { get; set; } = new List<DocumentVersion>();
+
     public virtual Employee? Employee { get; set; }
 
     public virtual Employee? ResponsibleNavigation { get; set; }

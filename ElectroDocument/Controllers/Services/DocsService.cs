@@ -10,6 +10,12 @@ using Spire.Doc.Layout;
 using Document = Spire.Doc.Document;
 using Microsoft.AspNetCore.Mvc;
 using ElectroDocument.Models;
+using DocumentFormat.OpenXml.Presentation;
+using DocumentFormat.OpenXml.Wordprocessing;
+using DocumentFormat.OpenXml.InkML;
+using System.Security.Policy;
+using OpenXmlPowerTools;
+using System.Collections;
 
 
 namespace ElectroDocument.Controllers.Services
@@ -33,7 +39,7 @@ namespace ElectroDocument.Controllers.Services
 
     public class EmployeeContactData : ADocumentData 
     {
-        public long Role { get;set; }
+        public string Role { get;set; }
         public int Salary { get; set; }
 
     }
@@ -100,7 +106,55 @@ namespace ElectroDocument.Controllers.Services
             return context.Docs.Where(doc => doc.EmployeeId == id);
         }
 
-        public void UpdateRole(long userId, long roleId)
+        private bool FullDocsStatement(long id, Doc doc)
+        {
+            if (doc.EmployeeId == id) return true;
+            foreach (DocumentVersion version in doc.DocumentVersionDocs)
+            {
+                if (version.EditorId == id) return true;
+            }
+
+            return false;
+        }
+
+
+        public IEnumerable<Doc> GetFullDocsByUserId(long id)
+        {
+            context.Employees.Load();
+            context.DocumentVersions.Load();
+            List<Doc> docs = new List<Doc>(context.Docs.Where(doc => doc.EmployeeId == id));
+            IEnumerable<DocumentVersion> versions = context.DocumentVersions.Where(ver=>ver.EditorId == id);
+            foreach(DocumentVersion ver in versions)
+            {
+                if(ver.NewDoc is not null)
+                    docs.Add(ver.NewDoc);
+            }
+
+            for (int i = 0; i < docs.Count; i++)
+            {
+                Doc newDoc = GetLastDocVersionById(docs[i].Id);
+                docs[i] = newDoc;
+            }
+
+            List<long> ids = new List<long>();
+
+            docs.RemoveAll(doc =>
+            {
+                if (!ids.Contains(doc.Id))
+                {
+                    ids.Add(doc.Id);
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            });
+
+            return docs;
+        }
+
+        public void UpdateRole(long userId, long roleId) 
         {
             context.Employees.Load();
             context.Roles.Load();
@@ -115,6 +169,56 @@ namespace ElectroDocument.Controllers.Services
             context.Roles.Load();
             context.Individuals.Load();
             return context.Docs.Find(id);
+        }
+
+        public DocumentVersion? GetDocumentVersion(long id)
+        {
+            context.DocumentVersions.Load();
+            List<DocumentVersion> docsVersions = new List<DocumentVersion>(context.DocumentVersions);
+            foreach(DocumentVersion version  in docsVersions)
+            {
+                if (version.NewDocId != null && version.NewDocId == id) return version;
+                else if (version.DocIdSrc == id) return version;
+            }
+            return null;
+        }
+
+        public Doc? GetLastDocVersionById(long id)
+        {
+            context.Docs.Load();
+            context.Employees.Load();
+            context.Roles.Load();
+            context.Individuals.Load();
+            Doc doc = context.Docs.Find(id);
+            DocumentVersion docVer = GetDocumentVersion(id);
+            if(docVer.DocIdSrc == id)
+            {
+                List<DocumentVersion> docsVersions = new List<DocumentVersion>(doc.DocumentVersionDocs);
+                docsVersions.AddRange(doc.DocumentVersionNewDocs);
+                docsVersions.AddRange(doc.DocumentVersionDocIdSrcNavigations);
+                IEnumerable<DocumentVersion> docs = docsVersions.OrderBy(ver => ver.Id);
+
+                return docs.Last().NewDoc is not null ? docs.Last().NewDoc : docs.Last().Doc;
+            }
+
+            return GetLastDocVersionById(docVer.DocIdSrc);
+        }
+
+        public Doc? GetFirstDocVersionById(long id)
+        {
+            context.Docs.Load();
+            context.DocumentVersions.Load();
+            context.Employees.Load();
+            context.Roles.Load();
+            context.Individuals.Load();
+            Doc doc = context.Docs.Find(id);
+            
+            
+            List<DocumentVersion> docsVersions = new List<DocumentVersion>(doc.DocumentVersionDocs);
+            docsVersions.AddRange(doc.DocumentVersionNewDocs);
+            IEnumerable<DocumentVersion> docs = docsVersions.OrderBy(ver => ver.Id);
+
+            return docs.First().Doc;
         }
 
         public Doc? GetLastEmployeeContract(long UserId)
@@ -132,25 +236,193 @@ namespace ElectroDocument.Controllers.Services
             return context.Roles.Find(id).Title;
         }
 
+        public Doc FillStruct(long empId, ADocumentData rawdata)
+        {
+            if (rawdata is EmployeeContactData contactData)
+            {
+                Doc EmployeeContract = new Doc();
+                EmployeeContract.Number = contactData.Number;
+                EmployeeContract.Date = contactData.Date;
+                EmployeeContract.Desc = contactData.Role;
+                EmployeeContract.Sum = contactData.Salary;
+                EmployeeContract.EmployeeId = empId;
+                EmployeeContract.DocType = (int)DocumentTypes.EmploymentContract;
+                EmployeeContract.Title = "Трудовой договор.";
+
+                return EmployeeContract;
+            }
+            else if (rawdata is RoleMoveData roleMoveData)
+            {
+                Doc moved = new Doc();
+                moved.Date = roleMoveData.Date;
+                moved.Number = roleMoveData.Number;
+                moved.EmployeeId = empId;
+                moved.Desc = roleMoveData.OldRole;
+                moved.DescSecond = roleMoveData.NewRole;
+                moved.Reason = roleMoveData.Reason;
+                moved.Sum = (int)roleMoveData.Salary;
+                moved.DocType = (int)DocumentTypes.Moved;
+                moved.Title = "Перевод сотрудника.";
+
+                return moved;
+            }
+            else if (rawdata is DismissedData dismissedData)
+            {
+                Doc dis = new Doc();
+                dis.Date = dismissedData.Date;
+                dis.Number = dismissedData.Number;
+                dis.EmployeeId = empId;
+                dis.Desc = dismissedData.Desc;
+                dis.Reason = dismissedData.Reason;
+
+                dis.DocType = (int)DocumentTypes.Dismissed;
+                dis.Title = "Расторжение трудового договора.";
+
+                return dis;
+
+            }
+            else if (rawdata is WeekendData weekend)
+            {
+                Doc weekendDoc = new Doc();
+                weekendDoc.Date = weekend.Date;
+                weekendDoc.Number = weekend.Number;
+                weekendDoc.EmployeeId = empId;
+                weekendDoc.Reason = weekend.Reason;
+                weekendDoc.Date = weekend.Date;
+                weekendDoc.DateSecond = weekend.End;
+
+                {
+                    int currentYear = DateTime.Now.Year;
+
+                    Doc employeeContract = GetLastEmployeeContract(empId);
+                    int diff = (currentYear - 1) - employeeContract.Date.Year;
+
+                    weekendDoc.DateThird = employeeContract.Date.AddYears(diff);
+                }
+
+
+                weekendDoc.DocType = (int)DocumentTypes.Weekend;
+                weekendDoc.Title = "Предоставление отпуска.";
+
+                return weekendDoc;
+            }
+            else if (rawdata is EncourageData encourageData)
+            {
+                Doc encourage = new Doc();
+                encourage.Number = encourageData.Number;
+                encourage.EmployeeId = empId;
+                encourage.Reason = encourageData.Reason;
+                encourage.Date = encourageData.Date;
+                encourage.DescSecond = encourageData.Role;
+                encourage.Desc = encourageData.Desc;
+                encourage.Sum = encourageData.Salary;
+
+                encourage.DocType = (int)DocumentTypes.Encouragement;
+                encourage.Title = "Поощерение.";
+
+                return encourage;
+            }
+            else if (rawdata is RoleCreationData roleDate)
+            {
+                Doc role = new Doc();
+                role.Date = roleDate.Date;
+                role.Number = roleDate.Number;
+                role.EmployeeId = empId;
+                role.Sum = roleDate.Salary;
+                role.Desc = roleDate.NewRole;
+
+                role.DocType = (int)DocumentTypes.AddRole;
+                role.Title = "О внесение изменений в штатное расписание.";
+
+                role.Responsible = roleDate.Resposible;
+
+                return role;
+            }
+
+            return null;
+        }
+
+        public bool isFirstDoc(long docId)
+        {
+            var seq = context.DocumentVersions.Where(v => v.NewDocId == docId);
+            int c = seq.Count();
+            return c < 1;
+        }
+
+        public bool isFirstNewDocVersion(long docId)
+        {
+            var seq = context.DocumentVersions.Where(v => v.DocId == docId);
+            int c = seq.Count();
+            return c < 1;
+        }
+
+
+        public void EditDocument(long empId, long editorId, long docId, ADocumentData rawData)
+        {
+            context.Docs.Load();
+            Doc doc = FillStruct(empId, rawData);
+            context.Docs.Add(doc);
+            context.SaveChanges();
+
+            context.DocumentVersions.Load();
+            long newDocId = doc.Id;
+
+            if (isFirstNewDocVersion(docId))
+            {
+                DocumentVersion version = new DocumentVersion();
+                //context.Docs.Find(docId);
+
+                version.NewDocId = newDocId;
+                version.DocIdSrc = docId;
+                version.Date = DateTime.Now;
+                version.DocId = docId;
+                version.EditorId = editorId;
+
+                context.DocumentVersions.Add(version);
+                context.SaveChanges();
+            }
+            else
+            {
+                Doc srcDoc = GetFirstDocVersionById(docId);
+                DocumentVersion version = new DocumentVersion();
+                //context.Docs.Find(docId);
+
+                version.NewDocId = newDocId;
+                version.DocIdSrc = srcDoc.Id;
+                version.Date = DateTime.Now;
+                version.DocId = docId;
+                version.EditorId = editorId;
+
+                context.DocumentVersions.Add(version);
+                context.SaveChanges();
+            }
+
+        }
+
+        
         public void CreateDocument(long empId,ADocumentData rawdata)
         {
             context.Docs.Load();
             context.Employees.Load();
             context.Roles.Load();
             context.Individuals.Load();
+            context.DocumentVersions.Load();
+
+            long docId = 0;
 
             if (rawdata is EmployeeContactData contactData)
             {
                 Doc EmployeeContract = new Doc();
                 EmployeeContract.Number = contactData.Number;
                 EmployeeContract.Date = contactData.Date;
-                EmployeeContract.Desc = GetRoleTitleById(contactData.Role);
+                EmployeeContract.Desc = contactData.Role;
                 EmployeeContract.Sum = contactData.Salary;
                 EmployeeContract.EmployeeId = empId;
                 EmployeeContract.DocType = (int)DocumentTypes.EmploymentContract;
                 EmployeeContract.Title = "Трудовой договор.";
                 context.Docs.Add(EmployeeContract);
                 context.SaveChanges();
+                docId = EmployeeContract.Id;
             }
             else if(rawdata is RoleMoveData roleMoveData)
             {
@@ -163,11 +435,11 @@ namespace ElectroDocument.Controllers.Services
                 moved.Reason = roleMoveData.Reason;
                 moved.Sum = (int)roleMoveData.Salary;
                 moved.DocType = (int)DocumentTypes.Moved;
-                moved.Title = "Перевод сотрдуника.";
+                moved.Title = "Перевод сотрудника.";
 
                 context.Docs.Add(moved);
                 context.SaveChanges();
-
+                docId = moved.Id;
             }
             else if (rawdata is DismissedData dismissedData)
             {
@@ -209,6 +481,8 @@ namespace ElectroDocument.Controllers.Services
 
                 context.Docs.Add(weekendDoc);
                 context.SaveChanges();
+
+                docId = weekendDoc.Id;
             }
             else if (rawdata is EncourageData encourageData)
             {
@@ -226,6 +500,8 @@ namespace ElectroDocument.Controllers.Services
 
                 context.Docs.Add(encourage);
                 context.SaveChanges();
+
+                docId = encourage.Id;
             }
             else if (rawdata is RoleCreationData roleDate)
             {
@@ -242,7 +518,19 @@ namespace ElectroDocument.Controllers.Services
                 role.Responsible = roleDate.Resposible;
                 context.Docs.Add(role);
                 context.SaveChanges();
+
+                docId = role.Id;
             }
+
+            DocumentVersion documentVersion = new DocumentVersion();
+            documentVersion.DocId = docId;
+            documentVersion.Date = DateTime.Now;
+            documentVersion.EditorId = empId;
+            documentVersion.DocIdSrc = docId;
+
+            context.DocumentVersions.Add(documentVersion);
+
+            context.SaveChanges();
         }
 
         public async Task<Document> GenerateDocument(long id)

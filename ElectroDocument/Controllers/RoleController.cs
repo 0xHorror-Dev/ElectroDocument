@@ -1,12 +1,14 @@
 ﻿using ElectroDocument.Controllers.AppContext;
 using ElectroDocument.Controllers.Services;
 using ElectroDocument.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System.Security.Claims;
 
 namespace ElectroDocument.Controllers
 {
+	[Authorize(Policy = "Editing")]
 	public class RoleController : Controller
 	{
 		private RoleService roleService;
@@ -16,8 +18,8 @@ namespace ElectroDocument.Controllers
 			this.roleService = roleService;
 		}
 
-
-		public async Task<IActionResult> Index()
+        [Authorize(Policy = "Editing")]
+        public async Task<IActionResult> Index()
 		{
             //List<RoleModelTableRow> rows = new List<RoleModelTableRow>();
 
@@ -30,7 +32,8 @@ namespace ElectroDocument.Controllers
             return View(new RoleModel { rolesTable = await roleService.GetRolesAsync()});
 		}
 
-		public async Task<IActionResult> Create()
+        [Authorize(Policy = "Admin")]
+        public async Task<IActionResult> Create()
 		{
             IEnumerable<Claim> claims = User.Claims;
             Claim claim = claims.Where(claim => claim.Type == ClaimTypes.NameIdentifier).First();
@@ -44,7 +47,8 @@ namespace ElectroDocument.Controllers
             return View(model);
 		}
 
-		public async Task<IResult> Add([FromBody] RoleCreateModel model)
+        [Authorize(Policy = "Admin")]
+        public async Task<IResult> Add([FromBody] RoleCreateModel model)
 		{
 			roleService.CreateRole(model);
 

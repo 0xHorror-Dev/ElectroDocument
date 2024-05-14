@@ -6,8 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 using Spire.Doc;
 using System.Reflection.Metadata;
 using System.Security.Claims;
+using DocumentFormat.OpenXml.Packaging;
+using OpenXmlPowerTools;
+using System.IO.Packaging;
+using System.Xml.Linq;
 using Document = Spire.Doc.Document;
-
+using System.Text;
+using System.IO;
+using System.Xml.Serialization;
 
 namespace ElectroDocument.Controllers
 {
@@ -17,6 +23,7 @@ namespace ElectroDocument.Controllers
         DocsService service;
         UserService userService;
         RoleService roleService;
+
         public DocsController(DocsService service, UserService userService, RoleService roleService)
         {
             this.service = service;
@@ -24,14 +31,15 @@ namespace ElectroDocument.Controllers
             this.roleService=roleService;
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Index(long? id)
         {
+
             DocsModel model;
             model = new DocsModel();
             if (id is not null)
             {
-                model.docs = service.GetDocsByUserId(id.Value);
+                model.docs = service.GetFullDocsByUserId(id.Value);
             }
             else
             {
@@ -39,9 +47,19 @@ namespace ElectroDocument.Controllers
                 Claim claim = claims.Where(claim => claim.Type == ClaimTypes.NameIdentifier).First();
                 string dbid = claim.Value;
                 Employee? emp = await userService.GetEmployeeAsync(dbid);
-                model.docs = service.GetDocsByUserId(emp.Id);
+                model.docs = service.GetFullDocsByUserId(emp.Id);
             }
             return View(model);
+        }
+
+
+        public async Task<IActionResult> View(long? id)
+        {
+            var model = new
+            {
+                Id = id.Value
+            };
+            return base.View(model);
         }
 
 
@@ -63,23 +81,39 @@ namespace ElectroDocument.Controllers
             }
         }
 
-        [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<ActionResult> EmployeeContract(string? id)
+        public async Task<FileContentResult> GenerateDocumentPDF(string id)
         {
-            Employee emp = await userService.GetEmployeeAsync(id);
 
-            EmployeeContractModel model = new EmployeeContractModel();
-            model.Fullname = $"{emp.Individual.Name} {emp.Individual.Surname} {emp.Individual.Patronymic}";
-            model.id = Convert.ToInt64(id);
-            model.Roles = await roleService.GetRolesAsync();
+            Document doc = await service.GenerateDocument(Convert.ToInt64(id));
+            
+            using (MemoryStream docxStream = new MemoryStream())
+            {
+                try
+                {
+                    doc.SaveToStream(docxStream, FileFormat.Docx);
+                    var source = Package.Open(docxStream);
+                    var document = WordprocessingDocument.Open(source);
+                    HtmlConverterSettings settings = new HtmlConverterSettings();
+                    XElement html = HtmlConverter.ConvertToHtml(document, settings);
+                    byte[] result = Encoding.UTF8.GetBytes(html.ToString());
+                    var contentType = "text/html;charset=utf-8";
+                    return File(result, contentType);
+                }
+                catch 
+                {
+                    doc.SaveToStream(docxStream, FileFormat.PDF);
+                    byte[] byteArray = docxStream.ToArray();
+                    var contentType = "application/pdf";
+                    return File(byteArray, contentType);
+                }
 
-            return View(model);
+            }
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Editing")]
         [HttpGet]
-        public async Task<ActionResult> Moved(string? id)
+        public async Task<ActionResult> EmployeeContract(string? id, string? edit)
         {
             Employee emp = await userService.GetEmployeeAsync(id);
 
@@ -88,26 +122,34 @@ namespace ElectroDocument.Controllers
             model.id = Convert.ToInt64(id);
             model.Roles = await roleService.GetRolesAsync();
 
+            if (edit is not null)
+            {
+                model.DocId = Convert.ToInt64(edit);
+            }
+
             return View(model);
         }
 
-        [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<ActionResult> Dismissed(string? id)
+        public async Task<ActionResult> EditDoc(string id)
         {
-            Employee emp = await userService.GetEmployeeAsync(id);
+            Doc targetDoc = service.GetDocById(Convert.ToInt64(id));
+            switch (targetDoc.DocType)
+            {
+                case (sbyte?)DocumentTypes.Moved: return Redirect($"/Docs/Moved?id={targetDoc.EmployeeId}&Edit={id}");
+                case (sbyte?)DocumentTypes.Weekend: return Redirect($"/Docs/Weekend?id={targetDoc.EmployeeId}&Edit={id}");
+                case (sbyte?)DocumentTypes.Dismissed: return Redirect($"/Docs/Dismissed?id={targetDoc.EmployeeId}&Edit={id}");
+                case (sbyte?)DocumentTypes.EmploymentContract: return Redirect($"/Docs/EmployeeContract?id={targetDoc.EmployeeId}&Edit={id}");
+                case (sbyte?)DocumentTypes.Encouragement: return Redirect($"/Docs/Encourage?id={targetDoc.EmployeeId}&Edit={id}");
+            }
 
-            EmployeeContractModel model = new EmployeeContractModel();
-            model.Fullname = $"{emp.Individual.Name} {emp.Individual.Surname} {emp.Individual.Patronymic}";
-            model.id = Convert.ToInt64(id);
-            model.Roles = await roleService.GetRolesAsync();
-
-            return View(model);
+            return Redirect("/Home");
         }
 
-        [Authorize(Policy = "Admin")]
+
+        [Authorize(Policy = "Editing")]
         [HttpGet]
-        public async Task<ActionResult> Weekend(string? id)
+        public async Task<ActionResult> Moved(string? id, string? edit)
         {
             Employee emp = await userService.GetEmployeeAsync(id);
 
@@ -116,11 +158,17 @@ namespace ElectroDocument.Controllers
             model.id = Convert.ToInt64(id);
             model.Roles = await roleService.GetRolesAsync();
 
+            if (edit is not null)
+            {
+                model.DocId = Convert.ToInt64(edit);
+            }
+
             return View(model);
         }
 
-        [Authorize(Policy = "Admin")]
-        public async Task<ActionResult> RoleCreate(string? id)
+        [Authorize(Policy = "Editing")]
+        [HttpGet]
+        public async Task<ActionResult> Dismissed(string? id, string? edit)
         {
             Employee emp = await userService.GetEmployeeAsync(id);
 
@@ -129,11 +177,17 @@ namespace ElectroDocument.Controllers
             model.id = Convert.ToInt64(id);
             model.Roles = await roleService.GetRolesAsync();
 
+            if (edit is not null)
+            {
+                model.DocId = Convert.ToInt64(edit);
+            }
+
             return View(model);
         }
 
-        [Authorize(Policy = "Admin")]
-        public async Task<ActionResult> Encourage(string? id)
+        [Authorize(Policy = "Editing")]
+        [HttpGet]
+        public async Task<ActionResult> Weekend(string? id, string? edit)
         {
             Employee emp = await userService.GetEmployeeAsync(id);
 
@@ -142,10 +196,53 @@ namespace ElectroDocument.Controllers
             model.id = Convert.ToInt64(id);
             model.Roles = await roleService.GetRolesAsync();
 
+            if (edit is not null)
+            {
+                model.DocId = Convert.ToInt64(edit);
+            }
+
             return View(model);
         }
 
         [Authorize(Policy = "Admin")]
+        public async Task<ActionResult> RoleCreate(string? id, string? edit)
+        {
+            Employee emp = await userService.GetEmployeeAsync(id);
+
+            EmployeeContractModel model = new EmployeeContractModel();
+            model.Fullname = $"{emp.Individual.Name} {emp.Individual.Surname} {emp.Individual.Patronymic}";
+            model.id = Convert.ToInt64(id);
+            model.Roles = await roleService.GetRolesAsync();
+
+
+            if (edit is not null)
+            {
+                model.DocId = Convert.ToInt64(edit);
+            }
+
+            return View(model);
+        }
+
+        [Authorize(Policy = "Editing")]
+        public async Task<ActionResult> Encourage(string? id, string? edit)
+        {
+            Employee emp = await userService.GetEmployeeAsync(id);
+
+            EmployeeContractModel model = new EmployeeContractModel();
+            model.Fullname = $"{emp.Individual.Name} {emp.Individual.Surname} {emp.Individual.Patronymic}";
+            model.id = Convert.ToInt64(id);
+            model.Roles = await roleService.GetRolesAsync();
+
+
+            if (edit is not null)
+            {
+                model.DocId = Convert.ToInt64(edit);
+            }
+
+            return View(model);
+        }
+
+        [Authorize(Policy = "Editing")]
         [HttpPost]
         public async Task<IResult> GenerateEmployeeContract([FromForm] GenerateEmployeeContractModel model)
         {
@@ -155,13 +252,23 @@ namespace ElectroDocument.Controllers
             data.Salary = Convert.ToInt32(model.salary);
             data.Number = Convert.ToInt32(model.docNumber);
             data.Date = model.date;
-            data.Role = Convert.ToInt64(model.position);
+            data.Role = model.position;
 
-            service.CreateDocument(model.id, data);
+            if (model.docId is not null)
+            {
+                if (model.editorId is null) return Results.StatusCode(StatusCodes.Status400BadRequest);
+
+                service.EditDocument(model.id, model.editorId.Value, model.docId.Value, data);
+            }
+            else
+            {
+                service.CreateDocument(model.id, data);
+            }
+
             return Results.StatusCode(StatusCodes.Status200OK);
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Editing")]
         [HttpPost]
         public async Task<IResult> GenerateMoved([FromForm] GenerateMoved model)
         {
@@ -174,12 +281,20 @@ namespace ElectroDocument.Controllers
             data.NewRole = model.newPosition;
             data.Reason = model.Reason;
             data.Salary = model.salary;
+            if(model.docId is not null)
+            {
+                if(model.editorId is null) return Results.StatusCode(StatusCodes.Status400BadRequest);
 
-            service.CreateDocument(model.id, data);
+                service.EditDocument(model.id, model.editorId.Value, model.docId.Value, data);
+            }
+            else
+            {
+                service.CreateDocument(model.id, data);
+            }
             return Results.StatusCode(StatusCodes.Status200OK);
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Editing")]
         [HttpPost]
         public async Task<IResult> GenerateDismissed([FromForm] GenerateDismissed model)
         {
@@ -191,11 +306,21 @@ namespace ElectroDocument.Controllers
             data.Reason = model.Reason;
             data.Desc = model.Desc;
 
-            service.CreateDocument(model.id, data);
+            if (model.docId is not null)
+            {
+                if (model.editorId is null) return Results.StatusCode(StatusCodes.Status400BadRequest);
+
+                service.EditDocument(model.id, model.editorId.Value, model.docId.Value, data);
+            }
+            else
+            {
+                service.CreateDocument(model.id, data);
+            }
+
             return Results.StatusCode(StatusCodes.Status200OK);
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Editing")]
         [HttpPost]
         public async Task<IResult> GenerateWeekend([FromForm] GenerateWeekend model)
         {
@@ -208,9 +333,19 @@ namespace ElectroDocument.Controllers
             data.End = model.End;
 
             service.CreateDocument(model.id, data);
+            if (model.docId is not null)
+            {
+                if (model.editorId is null) return Results.StatusCode(StatusCodes.Status400BadRequest);
+
+                service.EditDocument(model.id, model.editorId.Value, model.docId.Value, data);
+            }
+            else
+            {
+                service.CreateDocument(model.id, data);
+            }
             return Results.StatusCode(StatusCodes.Status200OK);
         }
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Editing")]
         [HttpPost]
         public async Task<IResult> GenerateRoleCreation([FromForm] GenerateRoleCreate model)
         {
@@ -224,11 +359,11 @@ namespace ElectroDocument.Controllers
             data.Salary = Convert.ToInt32(model.Salary);
             data.Resposible = model.responsible;
 
-            service.CreateDocument(model.id, data);
+
             return Results.StatusCode(StatusCodes.Status200OK);
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Editing")]
         [HttpPost]
         public async Task<IResult> GenerateEncourage([FromForm] GenerateEncourage model)
         {
@@ -242,8 +377,16 @@ namespace ElectroDocument.Controllers
             data.Reason = model.Reason;
             data.Desc = model.Desc;
             data.Salary = Convert.ToInt32(model.salary);
+            if (model.docId is not null)
+            {
+                if (model.editorId is null) return Results.StatusCode(StatusCodes.Status400BadRequest);
 
-            service.CreateDocument(model.id, data);
+                service.EditDocument(model.id, model.editorId.Value, model.docId.Value, data);
+            }
+            else
+            {
+                service.CreateDocument(model.id, data);
+            }
             return Results.StatusCode(StatusCodes.Status200OK);
         }
 

@@ -1,9 +1,26 @@
 ﻿@using ElectroDocument.Controllers.AppContext;
+@using ElectroDocument.Controllers.Services;
+@using System.Security.Claims;
+
+@inject DocumentVersionService versionService;
+@inject DocsService documentService;
 @{
     ViewData["Title"] = "Документы - Увольнение";
     var userId = Model.id;
     var fullname = Model.Fullname;
     IEnumerable<Role> roles = Model.Roles;
+    long? docId = Model.DocId;
+    Doc? lastDoc = null;
+    string? editorId = null;
+
+    if (docId is not null)
+    {
+        lastDoc = documentService.GetDocById(docId.Value);
+        IEnumerable<Claim> claims = User.Claims;
+        Claim claim = claims.Where(claim => claim.Type == ClaimTypes.NameIdentifier).First();
+        editorId = claim.Value;
+    }
+
 }
 
 
@@ -123,6 +140,20 @@
     <div id="message" class="message" style="display: none;"></div>
 </div>
 
+@if (docId is not null)
+{
+    <script>
+        var Editing = true;
+    </script>
+}
+else
+{
+    <script>
+        var Editing = false;
+    </script>
+}
+
+
 <script>
     document.getElementById("myForm").addEventListener("submit", function (event) {
         var docNumberInput = document.getElementById("docNumber").value;
@@ -168,3 +199,44 @@
         }, 5000);
     }
 </script>
+
+@if (docId is not null)
+{
+    <script>
+        function setValueForListbox(listboxname, vvalue) {
+            var positionSelect = document.getElementById(listboxname);
+            for (var i, j = 0; i = positionSelect.options[j]; j++) {
+                if (i.value == vvalue) {
+                    positionSelect.selectedIndex = j;
+                    break;
+                }
+            }
+        }
+
+        window.addEventListener("load", (event) => {
+            document.getElementById('docNumber').value = @lastDoc.Number;
+
+            var today = new Date('@GetDateForJs(lastDoc.Date)');
+            console.log(today);
+
+            document.getElementById('date').value = today.toISOString().substr(0, 10);
+            document.getElementById('reason').value = @Html.Raw(lastDoc.Reason);
+            document.getElementById('Desc').value = @Html.Raw(lastDoc.Desc);
+
+            //console.log('desc is  @Html.Raw(lastDoc.Desc)');
+            //console.log('desc2 is @Html.Raw(lastDoc.DescSecond)');
+            //setValueForListbox('reason', '@lastDoc.Reason');
+            //setValueForListbox('newPosition', '@Html.Raw(lastDoc.DescSecond)');
+            //setValueForListbox('salary', @lastDoc.Sum);
+            //setValueForListbox('docNumber', '@lastDoc.Number');
+            //setValueForListbox('date', '@lastDoc.DescSecond');
+        });
+
+
+    </script>
+
+    string GetDateForJs(DateOnly date)
+    {
+        return date.ToString("yyyy/MM/dd").Replace('.', '-');
+    }
+}

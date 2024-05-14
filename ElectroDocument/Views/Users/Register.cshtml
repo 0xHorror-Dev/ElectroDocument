@@ -10,48 +10,52 @@
 
 <h2>Форма создания сотрудника</h2>
 <form id="employeeForm" action="/Users/Add" onsubmit="return validateForm()" method="post" enctype="multipart/form-data">
-    <div>
+    <div class="form-group">
         <label for="Name">Имя <span class="error">*</span></label><br>
-        <input type="text" id="firstName" name="Name" required><br>
+        <input type="text" class="form-control" id="firstName" name="Name" required><br>
     </div>
-    <div>
+    <div class="form-group">
         <label for="Surname">Фамилия <span class="error">*</span></label><br>
-        <input type="text" id="lastName" name="Surname" required><br>
+        <input type="text" class="form-control" id="lastName" name="Surname" required><br>
     </div>
-    <div>
+    <div class="form-group">
         <label for="UserName">Логин <span class="error">*</span></label><br>
-        <input type="text" id="login" name="UserName" required><br>
+        <input type="text" class="form-control" id="login" name="UserName" required><br>
     </div>
-    <div>
+    <div class="form-group">
         <label for="Password">Пароль <span class="error">*</span></label><br>
-        <input type="password" id="password" name="Password" required><br>
+        <input type="password" class="form-control" id="password" name="Password" required><br>
     </div>
-    <div>
+    <div class="form-group">
         <label for="Patronymic">Отчество</label><br>
-        <input type="text" id="middleName" name="Patronymic"><br>
+        <input type="text" class="form-control" id="middleName" name="Patronymic"><br>
     </div>
-    <div>
+    <div class="form-group">
         <label for="PhoneNumber">Номер телефона</label><br>
-        <input type="text" id="phoneNumber" name="PhoneNumber"><br>
+        <input type="text" class="form-control" id="phoneNumber" name="PhoneNumber"><br>
     </div>
-    <div>
+    <div class="form-group">
         <label for="Address">Адрес проживания</label><br>
-        <input type="text" id="address" name="Address"><br>
+        <input type="text" class="form-control" id="address" name="Address"><br>
     </div>
-    <div>
-        <label for="Role">Уровень доступа <span class="error">*</span></label><br>
-        <select id="Role" name="Role" required>
+    <div class="form-group">
+        <label for="Role">Должность <span class="error">*</span></label><br>
+        <select class="form-control" id="Role" name="Role" required>
             <option value="">Выберите должность</option>
-            @foreach(Role r in roles)
+            @foreach (Role r in roles)
             {
                 <option value="@r.Id">@r.Title</option>
             }
         </select><br>
     </div>
-    <label for="Image">Изображение</label><br>
-    <input type="file" id="image" name="Image"><br>
-    <div>
-        <input type="submit" value="Создать">
+    <div class="form-group">
+        <label for="Image">Изображение</label><br>
+        <input type="file" class="form-control-file" id="image" name="Image"><br>
+    </div>
+    <br>
+    <br>
+    <div class="form-group">
+        <input type="submit" class="btn btn-primary" value="Создать">
     </div>
 </form>
 

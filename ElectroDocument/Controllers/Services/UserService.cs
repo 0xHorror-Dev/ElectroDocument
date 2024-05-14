@@ -1,12 +1,8 @@
 ﻿using ElectroDocument.Controllers.AppContext;
 using ElectroDocument.Models;
 using ElectroDocument.Models.Cached;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Caching.Distributed;
-using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace ElectroDocument.Controllers.Services
@@ -21,6 +17,34 @@ namespace ElectroDocument.Controllers.Services
         {
             cache = distributedCache;
             db = context;
+        }
+
+        public async Task UpdateEmployee(string id, string? Surname, string? Name, string? Patronymic, string? Address, string? Phone)
+        {
+            db.Employees.Load();
+            db.Individuals.Load();
+            Employee employee = await db.Employees.FindAsync(Convert.ToInt64(id));
+            if (Name is not null)
+            {
+                employee.Individual.Name = Name;
+            }
+            if (Name is not null)
+            {
+                employee.Individual.Surname = Surname;
+            }
+            if (Name is not null)
+            {
+                employee.Individual.Patronymic = Patronymic;
+            }
+            if (Name is not null)
+            {
+                employee.Individual.Address = Address;
+            }
+            if (Name is not null)
+            {
+                employee.Individual.PhoneNumber = Phone;
+            }
+            await db.SaveChangesAsync();
         }
 
         public async Task<Employee?> GetEmployeeAsync(string id)
@@ -77,7 +101,7 @@ namespace ElectroDocument.Controllers.Services
             else
             {
                 CachedEmployee cachedEmployee = JsonSerializer.Deserialize<CachedEmployee?>(cacheResult);
-                if(cachedEmployee.Password == data.Password)
+                if (cachedEmployee.Password == data.Password)
                 {
                     await db.Employees.LoadAsync();
                     await db.EmployeeCredentials.LoadAsync();
@@ -98,7 +122,7 @@ namespace ElectroDocument.Controllers.Services
         {
             try
             {
-                Employee emp = new Employee() { RoleId = usersModel.Role};
+                Employee emp = new Employee() { RoleId = usersModel.Role };
                 emp.Individual = new Individual { Address = usersModel.Address, Name = usersModel.Name, Patronymic = usersModel.Patronymic, PhoneNumber = usersModel.PhoneNumber, Surname = usersModel.Surname };
                 emp.Credentials = new EmployeeCredential { Password = usersModel.Password, UserName = usersModel.UserName };
                 db.Employees.Add(emp);
@@ -106,7 +130,7 @@ namespace ElectroDocument.Controllers.Services
                 task.Wait();
                 db.Employees.Load();
                 db.EmployeeCredentials.Load();
-                long empId = db.Employees.Where(emp=>emp.Credentials.UserName ==  usersModel.UserName).First().Id;
+                long empId = db.Employees.Where(emp => emp.Credentials.UserName == usersModel.UserName).First().Id;
                 await db.SaveChangesAsync();
                 return empId;
             }

@@ -73,7 +73,7 @@
         <tbody>
             @foreach (Doc doc in docs)
             {
-                <tr onclick="window.location.href='/Docs/GenerateDocument?id=@doc.Id';">
+                <tr onclick="window.location.href='/Docs/View?id=@doc.Id';">
                     <td>@doc.Number</td>
                     <td>@doc.Date</td>
                     <td>@doc.Title</td>

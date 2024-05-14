@@ -42,8 +42,11 @@
         <th>Адресс прописки</th>
         <th>Номер телефона</th>
     </tr>
-    <input type="text" id="inputField" placeholder="ФИО сотрудника">
-    <button onclick="filter()">Отфильтровать</button>
+    <input class="form-control" type="text" id="inputField" placeholder="ФИО сотрудника">
+    <br> 
+    <button class="btn btn-secondary" onclick="filter()">Отфильтровать</button>
+    <br>
+    <br>
     @foreach(Employee? emp in Model.profiles)
     {
         @if(emp is not null)
