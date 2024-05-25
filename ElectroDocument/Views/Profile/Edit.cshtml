@@ -91,8 +91,7 @@
             @if (res.Succeeded)
             {
                 <h1>Изменение пароля</h1>
-                <form method="post" action="/Profile/ChangePassword">
-                    <input type="password" name="currentPassword" placeholder="Текущий пароль" required>
+                <form method="post" action="/Profile/AdminChangeProfilePassword">
                     <input type="password" name="newPassword" placeholder="Новый пароль" required>
                     <input type="hidden" id="id" name="id" value="@id">
                     @if (passwordError is not null)
@@ -106,7 +105,7 @@
 
     </div>
 
-    <h2>Изменение Персональной Информации</h2>
+    <h2>Изменение Личной Информации</h2>
     <form id="changeForm">
         <label for="surname">Фамилия:</label><br>
         <input type="text" class="form-control" id="surname" name="surname" value="@Model.Surname"><br><br>
@@ -133,6 +132,7 @@
     <a href="/Docs/Dismissed?id=@id">Сформировать приказ о расторжении трудового договора</a></br>
     <a href="/Docs/Weekend?id=@id">Сформировать приказ о предоставлении отпускных</a></br>
     <a href="/Docs/Encourage?id=@id">Сформировать приказ о поощерении</a></br>
+    <a href="/Docs/Deprivation?id=@id">Сформировать приказ о депримации</a></br>
     <div class="form-container">
         <h1> Документы </h1>
         <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Введите описание">

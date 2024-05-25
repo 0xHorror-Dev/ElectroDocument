@@ -1,0 +1,262 @@
+﻿@using ElectroDocument.Controllers.AppContext;
+@using ElectroDocument.Controllers.Services;
+@using System.Security.Claims;
+
+@inject DocumentVersionService versionService;
+@inject DocsService documentService;
+@inject UserService userService;
+
+@{
+    ViewData["Title"] = "Документы - Депримация";
+    var userId = Model.id;
+    var fullname = Model.Fullname;
+
+    IEnumerable<Employee> responsibles = await userService.GetEmployees(); 
+
+    long? docId = Model.DocId;
+    Doc? lastDoc = null;
+    string? editorId = null;
+
+    if (docId is not null)
+    {
+        lastDoc = documentService.GetDocById(docId.Value);
+        IEnumerable<Claim> claims = User.Claims;
+        Claim claim = claims.Where(claim => claim.Type == ClaimTypes.NameIdentifier).First();
+        editorId = claim.Value;
+    }
+}
+
+
+
+<style>
+    /* CSS стили остаются прежними */
+
+    .form-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+            .form-group input:focus {
+                outline: none;
+                border-color: #007bff;
+            }
+
+    .btn {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+    .message {
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 4px;
+    }
+
+    .success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+
+    .error {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+
+    .profile-img {
+        max-width: 200px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+    }
+
+    .fullname {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .title {
+        width: 100%;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+        align-content: center;
+    }
+</style>
+
+<div class="form-container">
+    <h1 class="title"> Трудовой договор </h1>
+    <form id="myForm">
+        <div class="form-group">
+            <img src="/Profile/Image/@userId" alt="Profile Image" class="profile-img">
+            <h1 class="fullname"> @fullname </h1>
+
+        </div>
+        <div class="form-group">
+            <label for="responsibleId">Ответственный:</label>
+            <select id="responsibleId" name="responsibleId" required>
+
+                <option value="">Выберете ответсвенного</option>
+                @foreach(Employee responsible in responsibles)
+                {
+                    if (responsible.Id == Convert.ToInt64(editorId) || responsible.Role.AccessLevel == "User") continue;
+                    string reponsibleFullname = $"{responsible.Individual.Name} {responsible.Individual.Surname} {responsible.Individual.Patronymic}";
+                    <option value="@responsible.Id">@reponsibleFullname</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="Reason">Причина:</label>
+            <input type="text" id="Reason" name="Reason" required>
+        </div>
+        <div class="form-group">
+            <label for="docNumber">Номер документа:</label>
+            <input type="number" id="docNumber" name="docNumber" required>
+        </div>
+        <div class="form-group">
+            <label for="date">Вступления в силу:</label>
+            <input type="date" id="date" name="date" required>
+        </div>
+        <div class="form-group">
+            <label for="NoteDate">Дата записка:</label>
+            <input type="date" id="NoteDate" name="NoteDate" required>
+        </div>
+        <div class="form-group">
+            <label for="MonthDate">Месяц:</label>
+            <input type="date" id="MonthDate" name="MonthDate" required>
+        </div>
+        <button type="submit" class="btn">Отправить</button>
+    </form>
+    <div id="message" class="message" style="display: none;"></div>
+</div>
+
+@if (docId is not null)
+{
+    <script>
+        var Editing = true;
+    </script>
+}
+else
+{
+    <script>
+        var Editing = false;
+    </script>
+
+}
+
+<script>
+    document.getElementById("myForm").addEventListener("submit", function (event) {
+        
+        event.preventDefault(); // Предотвращаем отправку формы по умолчанию
+        var form = event.target;
+        var formData = new FormData(form);
+        formData.append("id", `@userId`);
+        if (Editing) {
+            formData.append("docId", `@docId`);
+            formData.append("editorId", `@editorId`);
+            console.log(formData);
+        }
+
+
+
+        fetch("/Docs/GenerateDeprivation", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error('Ошибка сети');
+                }
+            })
+            .then(data => {
+                showMessage('success', 'Данные успешно отправлены!');
+            })
+            .catch(error => {
+                showMessage('error', 'Ошибка отправки данных: ' + error.message);
+            });
+    });
+
+    function showMessage(type, message) {
+        var messageElement = document.getElementById("message");
+        messageElement.innerHTML = message;
+        messageElement.style.display = "block";
+        messageElement.classList.add(type);
+
+        setTimeout(function () {
+            messageElement.style.display = "none";
+            messageElement.classList.remove(type);
+        }, 5000);
+    }
+</script>
+@if (docId is not null)
+{
+    <script>
+        function setValueForListbox(listboxname, vvalue) {
+            var positionSelect = document.getElementById(listboxname);
+            for (var i, j = 0; i = positionSelect.options[j]; j++) {
+                if (i.value == vvalue) {
+                    positionSelect.selectedIndex = j;
+                    break;
+                }
+            }
+        }
+
+        window.addEventListener("load", (event) => {
+            setValueForListbox('responsibleId', '@Html.Raw(lastDoc.Responsible)');
+            document.getElementById('Reason').value = '@Html.Raw(lastDoc.DocDetails.Reason)';
+            document.getElementById('docNumber').value = @lastDoc.Number;
+            var today = new Date('@GetDateForJs(lastDoc.Date)');
+            console.log(today);
+
+            document.getElementById('date').value = today.toISOString().substr(0, 10);
+            today = new Date('@GetDateForJs(lastDoc.DateSecond.Value)');
+            console.log(today);
+
+            document.getElementById('NoteDate').value = today.toISOString().substr(0, 10);
+            today = new Date('@GetDateForJs(lastDoc.DateThird.Value)');
+            console.log(today);
+
+            document.getElementById('MonthDate').value = today.toISOString().substr(0, 10);
+        });
+
+
+    </script>
+
+    string GetDateForJs(DateOnly date)
+    {
+        return date.ToString("yyyy/MM/dd").Replace('.', '-');
+    }
+}

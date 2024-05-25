@@ -141,6 +141,7 @@ namespace ElectroDocument.Controllers
                 case (sbyte?)DocumentTypes.Dismissed: return Redirect($"/Docs/Dismissed?id={targetDoc.EmployeeId}&Edit={id}");
                 case (sbyte?)DocumentTypes.EmploymentContract: return Redirect($"/Docs/EmployeeContract?id={targetDoc.EmployeeId}&Edit={id}");
                 case (sbyte?)DocumentTypes.Encouragement: return Redirect($"/Docs/Encourage?id={targetDoc.EmployeeId}&Edit={id}");
+                case (sbyte?)DocumentTypes.Deprivation: return Redirect($"/Docs/Deprivation?id={targetDoc.EmployeeId}&Edit={id}");
             }
 
             return Redirect("/Home");
@@ -243,6 +244,24 @@ namespace ElectroDocument.Controllers
         }
 
         [Authorize(Policy = "Editing")]
+        public async Task<ActionResult> Deprivation(string? id, string? edit)
+        {
+            Employee emp = await userService.GetEmployeeAsync(id);
+
+            EmployeeContractModel model = new EmployeeContractModel();
+            model.Fullname = $"{emp.Individual.Name} {emp.Individual.Surname} {emp.Individual.Patronymic}";
+            model.id = Convert.ToInt64(id);
+            model.Roles = await roleService.GetRolesAsync();
+
+            if (edit is not null)
+            {
+                model.DocId = Convert.ToInt64(edit);
+            }
+
+            return View(model);
+        }
+
+        [Authorize(Policy = "Editing")]
         [HttpPost]
         public async Task<IResult> GenerateEmployeeContract([FromForm] GenerateEmployeeContractModel model)
         {
@@ -284,6 +303,33 @@ namespace ElectroDocument.Controllers
             if(model.docId is not null)
             {
                 if(model.editorId is null) return Results.StatusCode(StatusCodes.Status400BadRequest);
+
+                service.EditDocument(model.id, model.editorId.Value, model.docId.Value, data);
+            }
+            else
+            {
+                service.CreateDocument(model.id, data);
+            }
+            return Results.StatusCode(StatusCodes.Status200OK);
+        }
+
+        [Authorize(Policy = "Editing")]
+        [HttpPost]
+        public async Task<IResult> GenerateDeprivation([FromForm] GenerateDeprivation model)
+        {
+            Employee emp = await userService.GetEmployeeAsync(model.id.ToString());
+
+            DeprivationData data = new DeprivationData();
+            data.Number = Convert.ToInt32(model.docNumber);
+            data.Date = model.date;
+            data.Reason = model.Reason;
+            data.Month = model.MonthDate;
+            data.NoteDate = model.NoteDate;
+            data.responsibleId = model.responsibleId;
+
+            if (model.docId is not null)
+            {
+                if (model.editorId is null) return Results.StatusCode(StatusCodes.Status400BadRequest);
 
                 service.EditDocument(model.id, model.editorId.Value, model.docId.Value, data);
             }

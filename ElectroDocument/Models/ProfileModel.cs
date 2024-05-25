@@ -32,6 +32,12 @@ namespace ElectroDocument.Models
         public string CurrentPassword { get; set; }
     }
 
+    public class AdminProfilePasswordChange
+    {
+        public long Id { get; set; }
+        public string NewPassword { get; set; }
+    }
+
     public class ProfilePasswordChangeAdmin : ProfilePasswordChange
     {
         public long Id { get; set; }

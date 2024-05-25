@@ -1,6 +1,27 @@
 ﻿var tokenKey = "accessToken";
+function isEmpty(input) {
+    return input.trim().length === 0;
+}
 
 document.getElementById("loginSubmit").addEventListener("click", async e => {
+    if (isEmpty(document.getElementById("username").value)) {
+        if (isEmpty(document.getElementById("password").value)) {
+            document.getElementById("ErrorNotification").innerHTML = "Введите логин и пароль!";
+        }
+        else {
+            document.getElementById("ErrorNotification").innerHTML = "Введите логин!";
+
+        }
+
+        
+        return;
+    }
+    else if (isEmpty(document.getElementById("password").value))
+    {
+        document.getElementById("ErrorNotification").innerHTML = "Введите пароль!";
+        return;
+    }
+
     e.preventDefault();
     let response = await fetch("/Auth/Login", {
         method: "POST",

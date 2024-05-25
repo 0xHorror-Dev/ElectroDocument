@@ -22,7 +22,7 @@ namespace ElectroDocument.Controllers.Services
         public async Task<int> GetNotificationCount(long empId)
         {
             await context.Docs.LoadAsync();
-            List<Doc> qdocs =  new List<Doc>(docs.GetFullDocsByUserId(empId).AsQueryable());
+            List<Doc> qdocs =  new List<Doc>(docs.GetFullDocsByUserIdNotifyExt(empId).AsQueryable());
             
 
             int simpleDocCount = qdocs.Count(doc => doc.EmployeeId == empId && !Convert.ToBoolean(doc.Notified));
@@ -35,7 +35,7 @@ namespace ElectroDocument.Controllers.Services
         public async Task<IEnumerable<Doc>> GetUnseenDocuments(long empId)
         {
             await context.Docs.LoadAsync();
-            List<Doc> qdocs = new List<Doc>(docs.GetFullDocsByUserId(empId).AsQueryable());
+            List<Doc> qdocs = new List<Doc>(docs.GetFullDocsByUserIdNotifyExt(empId).AsQueryable());
 
             return qdocs.Where(doc => (doc.EmployeeId == empId || doc.Responsible == empId)
                 &&
@@ -63,7 +63,7 @@ namespace ElectroDocument.Controllers.Services
         public async Task<bool> Notified(long empId, long docId)
         {
             await context.Docs.LoadAsync();
-            List<Doc> qdocs = new List<Doc>(docs.GetFullDocsByUserId(empId).AsQueryable());
+            List<Doc> qdocs = new List<Doc>(docs.GetFullDocsByUserIdNotifyExt(empId).AsQueryable());
 
             Doc? doc =  qdocs.Where(
                 d => d.EmployeeId == empId || d.Responsible == empId).First();

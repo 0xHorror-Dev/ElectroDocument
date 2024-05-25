@@ -28,19 +28,19 @@ namespace ElectroDocument.Controllers.Services
             {
                 employee.Individual.Name = Name;
             }
-            if (Name is not null)
+            if (Surname is not null)
             {
                 employee.Individual.Surname = Surname;
             }
-            if (Name is not null)
+            if (Patronymic is not null)
             {
                 employee.Individual.Patronymic = Patronymic;
             }
-            if (Name is not null)
+            if (Address is not null)
             {
                 employee.Individual.Address = Address;
             }
-            if (Name is not null)
+            if (Phone is not null)
             {
                 employee.Individual.PhoneNumber = Phone;
             }
@@ -60,6 +60,17 @@ namespace ElectroDocument.Controllers.Services
             await db.Employees.LoadAsync();
             await db.EmployeeCredentials.LoadAsync();
             return db.Employees.Where(emp => emp.Credentials.UserName == Username).First().Id;
+        }
+
+        public async Task<bool> ForceUpdatePassword(long id, string newPassword)
+        {
+            await db.Employees.LoadAsync();
+            await db.EmployeeCredentials.LoadAsync();
+            Employee emp = await db.Employees.FindAsync(id);
+
+            emp.Credentials.Password = newPassword;
+            db.SaveChanges();
+            return true;
         }
 
         public async Task<bool> UpdatePassword(long id, string currentPassword, string newPassword)

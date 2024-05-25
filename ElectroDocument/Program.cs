@@ -26,7 +26,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.InstanceName = "redis_serv";
     options.ConfigurationOptions = new ConfigurationOptions()
     {
-        EndPoints = { { "192.168.0.225:6379" },
+        EndPoints = { { "192.168.0.224:6379" },
         },
         DefaultDatabase = 0
     };

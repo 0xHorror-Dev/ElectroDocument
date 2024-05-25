@@ -45,6 +45,21 @@ namespace ElectroDocument.Models
 
     }
 
+    public class GenerateDeprivation
+    {
+        public string docNumber { get; set; }
+        public string Reason { get; set; }
+        public long responsibleId { get; set; }
+        public long id  { get; set; }
+        public long? docId { get; set; }
+        public long? editorId { get; set; }
+
+        public DateOnly date { get; set; }
+        public DateOnly NoteDate { get; set; }
+        public DateOnly MonthDate {  get; set; }
+
+    }
+
 
     public class GenerateDismissed
     {

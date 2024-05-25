@@ -16,6 +16,8 @@ using DocumentFormat.OpenXml.InkML;
 using System.Security.Policy;
 using OpenXmlPowerTools;
 using System.Collections;
+using System.Diagnostics.Eventing.Reader;
+using StackExchange.Redis;
 
 
 namespace ElectroDocument.Controllers.Services
@@ -27,7 +29,8 @@ namespace ElectroDocument.Controllers.Services
         Dismissed = 2,
         Weekend = 3,
         AddRole = 4,
-        Encouragement = 5
+        Encouragement = 5,
+        Deprivation = 6
     }
 
     public abstract class ADocumentData
@@ -60,6 +63,14 @@ namespace ElectroDocument.Controllers.Services
         public string Desc { get; set; }
     }
 
+
+    public class DeprivationData : ADocumentData
+    {
+        public DateOnly NoteDate { get; set; }
+        public DateOnly Month { get; set; }
+        public string Reason { get; set; }
+        public long responsibleId { get; set; } 
+    }
 
 
     public class WeekendData : ADocumentData
@@ -131,6 +142,44 @@ namespace ElectroDocument.Controllers.Services
             foreach(DocumentVersion ver in versions)
             {
                 if(ver.NewDoc is not null)
+                    docs.Add(ver.NewDoc);
+            }
+
+            for (int i = 0; i < docs.Count; i++)
+            {
+                Doc newDoc = GetLastDocVersionById(docs[i].Id);
+                docs[i] = newDoc;
+            }
+
+            List<long> ids = new List<long>();
+
+            docs.RemoveAll(doc =>
+            {
+                if (!ids.Contains(doc.Id))
+                {
+                    ids.Add(doc.Id);
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            });
+
+            return docs;
+        }
+
+        public IEnumerable<Doc> GetFullDocsByUserIdNotifyExt(long id)
+        {
+            context.DocDetails.Load();
+            context.Employees.Load();
+            context.Docs.Load();
+            context.DocumentVersions.Load();
+            List<Doc> docs = new List<Doc>(context.Docs.Where(doc => doc.EmployeeId == id || doc.Responsible.Value == id));
+            IEnumerable<DocumentVersion> versions = context.DocumentVersions.Where(ver => ver.EditorId == id);
+            foreach (DocumentVersion ver in versions)
+            {
+                if (ver.NewDoc is not null)
                     docs.Add(ver.NewDoc);
             }
 
@@ -341,6 +390,21 @@ namespace ElectroDocument.Controllers.Services
 
                 return role;
             }
+            else if(rawdata is DeprivationData deprivationData)
+            {
+                Doc deprivation = new Doc();
+                deprivation.Date = deprivationData.Date;
+                deprivation.DateSecond = deprivationData.NoteDate;
+                deprivation.DateThird = deprivationData.Month;
+                deprivation.Number = deprivationData.Number;
+                deprivation.EmployeeId = empId;
+                deprivation.Responsible = deprivationData.responsibleId;
+                deprivation.DocDetails = new DocDetail { Reason = deprivationData.Reason };
+
+                deprivation.DocType = (int)DocumentTypes.Deprivation;
+                deprivation.Title = "О лишение премии";
+                return deprivation;
+            }
 
             return null;
         }
@@ -513,6 +577,25 @@ namespace ElectroDocument.Controllers.Services
                 context.SaveChanges();
 
                 docId = role.Id;
+            }
+            else if (rawdata is DeprivationData deprivationData)
+            {
+                Doc deprivation = new Doc();
+                deprivation.Date = deprivationData.Date;
+                deprivation.DateSecond = deprivationData.NoteDate;
+                deprivation.DateThird = deprivationData.Month;
+                deprivation.Number = deprivationData.Number;
+                deprivation.EmployeeId = empId;
+                deprivation.Responsible = deprivationData.responsibleId;
+                deprivation.DocDetails = new DocDetail { Reason = deprivationData.Reason };
+
+                deprivation.DocType = (int)DocumentTypes.Deprivation;
+                deprivation.Title = "О лишение премии";
+
+                context.Docs.Add(deprivation);
+                context.SaveChanges();
+
+                docId = deprivation.Id;
             }
 
             DocumentVersion documentVersion = new DocumentVersion();
@@ -710,9 +793,45 @@ namespace ElectroDocument.Controllers.Services
                         Replace(doc, @"ПРИЧИНА", rawDocument.DocDetails.Reason);//3
                     }
                     break;
+                case DocumentTypes.Deprivation:
+                    {
+                        doc.LoadFromFile("DEPRIVATION.docx");
+                        Doc employeeContract = GetLastEmployeeContract(rawDocument.EmployeeId.Value);
+
+                        int sum = rawDocument.Sum.GetValueOrDefault(0);
+
+                        Replace(doc, @"НДОК", rawDocument.Number.ToString());//3
+                        Replace(doc, @"ДТВСТУПЛЕНИЕ", rawDocument.Date.ToString("dd.MM.yyyy"));//3
+                        
+                        Replace(doc, @"НТРУД", employeeContract.Number.ToString());//3
+                        Replace(doc, @"ДТТРУД", employeeContract.Date.ToString("dd.MM.yyyy"));//3
+
+                        Replace(doc, @"ДТЗАПИСКА", rawDocument.DateSecond.Value.ToString("dd.MM.yyyy"));//3
+                        Replace(doc, @"ФИО", fullname);//3
+                        Replace(doc, @"ДТМЕСЯЦ", $"{GetMonthName((uint)rawDocument.DateThird.Value.Month - 1)} {rawDocument.DateThird.Value.Year}");//3
+                        Replace(doc, @"ПРИЧИНА", rawDocument.DocDetails.Reason);//3
+
+                        Employee responsible = rawDocument.ResponsibleNavigation;
+
+                        string responsiblefullname = $"{responsible.Individual.Name} {responsible.Individual.Surname} {responsible.Individual.Patronymic}";
+                        Replace(doc, @"ОТФИО", responsiblefullname);//3
+
+
+                    }
+                    break;
             }
 
             return doc;
+        }
+
+        private string GetMonthName(uint mon)
+        {
+            if (mon > 11)
+            {
+                throw new Exception($"Месяц: {mon} не найден!");
+            }
+            string[] months = { "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь" };
+            return months[mon];
         }
 
         private void Replace(Document doc, string rpattern, string replaceString)

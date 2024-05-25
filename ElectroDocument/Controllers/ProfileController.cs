@@ -88,17 +88,19 @@ namespace ElectroDocument.Controllers
             string id = claim.Value;
             Employee? emp = await userService.GetEmployeeAsync(id);
 
+            if (emp.Role.AccessLevel != "User") return Redirect($"/Profile/Edit/{id}");
+
             ProfileModel model = new ProfileModel
             {
                 Name = emp.Individual.Name,
                 Surname = emp.Individual.Surname,
                 Patronymic = emp.Individual.Patronymic,
                 ImageUrl = $"/Profile/Image/{id}",
-                PasswordError = PasswordError,
+                PasswordError = PasswordError is not null ? "Неверный пароль" : null,
                 Position = emp.Role
             };
 
-            model.docs = service.GetDocsByUserId(emp.Id);
+            model.docs = service.GetFullDocsByUserId(emp.Id);
 
             return View(model) ;
         }
@@ -161,32 +163,10 @@ namespace ElectroDocument.Controllers
 
         [Authorize(Policy = "Admin")]
         [HttpPost]
-        public async Task<ActionResult> AdminChangeProfilePassword([FromForm] long id)
+        public async Task<ActionResult> AdminChangeProfilePassword([FromForm] AdminProfilePasswordChange model)
         {
-            if (Request.Form.Files.Count > 0)
-            {
-                var dir = $"{_env.WebRootPath}/UsersImages";
-                var path = Path.Combine(dir, id.ToString() + ".jpg");
-                var uploadedFile = Request.Form.Files[0];
-
-                // Check if the file is an image
-                if (uploadedFile.ContentType.StartsWith("image/"))
-                {
-                    // Process the image
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        await uploadedFile.CopyToAsync(memoryStream);
-                        byte[] imageData = memoryStream.ToArray();
-
-                        // Here you can save the image, process it further, or return it as needed
-                        Console.WriteLine();
-                        System.IO.File.WriteAllBytes(path, imageData);
-
-                        //return File(imageData, uploadedFile.ContentType);
-                    }
-                }
-            }
-
+            model.NewPassword = Utils.sha256(model.NewPassword);
+            await userService.ForceUpdatePassword(Convert.ToInt64(model.Id), model.NewPassword);
             return Redirect("Home");
         }
 
@@ -207,7 +187,7 @@ namespace ElectroDocument.Controllers
                 Roles = roles
             };
 
-            model.docs = service.GetDocsByUserId(emp.Id);
+            model.docs = service.GetFullDocsByUserId(emp.Id);
             return View(model);
         }
 
@@ -246,27 +226,6 @@ namespace ElectroDocument.Controllers
             }
         }
 
-
-        // POST: ProfileController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: ProfileController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
 
         // POST: ProfileController/Delete/5
         [HttpPost]
