@@ -52,7 +52,7 @@
 
 <body>
     <div class="container">
-        <img src="@ImageUrl" alt="Profile Image" class="profile-img">
+        <img src="@ImageUrl" alt="" class="profile-img">
         <h1 class="fullname">@FullName</h1>
         @{
             var res = await AuthorizationService.AuthorizeAsync(User, "Admin");
@@ -82,21 +82,25 @@
 
     <div class="form-container">
         <h1>Изменение изображение профиля</h1>
-            <form method="post" enctype="multipart/form-data" action="/Profile/AdminChangeProfilePicture">
+            <form  method="post" enctype="multipart/form-data" action="/Profile/AdminChangeProfilePicture">
             <input type="file" name="profilePicture" accept="image/*">
             <input type="hidden" id="id" name="id" value="@id">
             <button type="submit" class="btn-primary">Сменить изображение профиля</button>
-        </form>
+            </form>
         @{
             @if (res.Succeeded)
             {
                 <h1>Изменение пароля</h1>
-                <form method="post" action="/Profile/AdminChangeProfilePassword">
-                    <input type="password" name="newPassword" placeholder="Новый пароль" required>
+                <form onsubmit="return validateForm()" method="post" action="/Profile/AdminChangeProfilePassword">
+                    <input type="password" name="newPassword" placeholder="Новый пароль" id="Password" required>
                     <input type="hidden" id="id" name="id" value="@id">
                     @if (passwordError is not null)
                     {
-                        <p class="error-message">Ошибка: @passwordError</p>
+                        <p class="error-message" id="error-message">Ошибка: @passwordError</p>
+                    }
+                    else
+                    {
+                        <p class="error-message" id="error-message"></p>
                     }
                     <button type="submit" class="btn-primary">Изменить пароль</button>
                 </form>
@@ -160,6 +164,31 @@
 
 
 <script>
+    function validatePassword(password) {
+        const minLength = 8;
+        if (password.length >= minLength) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function validatePhoneNumber(phoneNumber) {
+        const phoneNumberRegex = /^\+7\s?(\d{3})\s?\d{3}[\s-]?\d{2}[\s-]?\d{2}$/;
+        return phoneNumberRegex.test(phoneNumber);
+    }
+
+    function validateForm() {
+        var password = document.getElementById("Password").value;
+        var errorMessage = document.getElementById("error-message");
+
+        if (!validatePassword(password)) {
+            errorMessage.innerText = "Пароль должен быть не мнее 8 символов.";
+            return false;
+        }
+
+        return true;
+    }
 
     document.getElementById('changeForm').addEventListener('submit', function (event) {
         event.preventDefault(); // Предотвращаем стандартное поведение формы
@@ -167,6 +196,13 @@
         const formData = new FormData(this); // Создаем объект FormData для сбора данных формы
         formData.append("id", `@id`);
         // Отправляем данные на сервер
+
+        const phoneNumber = formData.get('phone');
+        if (!validatePhoneNumber(phoneNumber)) {
+            document.getElementById('message').textContent = "Пожалуйства введите номер телефона правильно. Пример номера телефона: '+7 (123) 456-78-90'";
+            return;
+        }
+
         fetch('/Profile/Individual', {
             method: 'POST',
             body: formData
