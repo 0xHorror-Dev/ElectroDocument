@@ -161,7 +161,10 @@ public partial class ElectroDocumentDevContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
+            entity.HasIndex(e => e.UserName, "UserName").IsUnique();
+
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
+            entity.Property(e => e.UserName).HasColumnType("longtext");
         });
 
         modelBuilder.Entity<Individual>(entity =>
@@ -189,6 +192,8 @@ public partial class ElectroDocumentDevContext : DbContext
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.ToTable("Role");
+
+            entity.HasIndex(e => e.Title, "Title").IsUnique();
 
             entity.Property(e => e.Id).HasColumnType("bigint(20)");
             entity.Property(e => e.AccessLevel)

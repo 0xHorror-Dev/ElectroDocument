@@ -19,12 +19,6 @@ public partial class Doc
 
     public long? EmployeeId { get; set; }
 
-    public string? Reason { get; set; }
-
-    public string? Desc { get; set; }
-
-    public string? DescSecond { get; set; }
-
     public int? Sum { get; set; }
 
     public string? Title { get; set; }
@@ -34,6 +28,10 @@ public partial class Doc
     public long? Responsible { get; set; }
 
     public short? ResponsibleNotified { get; set; }
+
+    public long? DocDetailsId { get; set; }
+
+    public virtual DocDetail? DocDetails { get; set; }
 
     public virtual ICollection<DocumentVersion> DocumentVersionDocIdSrcNavigations { get; set; } = new List<DocumentVersion>();
 
