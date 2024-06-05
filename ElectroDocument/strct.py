@@ -18,8 +18,16 @@ folders_to_ignore = [
     "TrudDocx.docx",
     "Weekend.docx",
     "Weekend1.docx",
-    "wwwroot"
-    
+    "wwwroot",
+    #----
+    "Migrations",
+    "DEPRIVATION.docx",
+    "libman.json",
+    "appsettings.json",
+    "appsettings.Development.json",
+    ".gitignore",
+    "Properties",
+    "strct.py"
 ]
 
 # Generate the markdown representation of the folder structure
