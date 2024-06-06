@@ -63,10 +63,12 @@ namespace ElectroDocument.Controllers.Services
         public async Task<bool> Notified(long empId, long docId)
         {
             await context.Docs.LoadAsync();
-            List<Doc> qdocs = new List<Doc>(docs.GetFullDocsByUserIdNotifyExt(empId).AsQueryable());
+            List<Doc> qdocs = (new List<Doc>(docs.GetFullDocsByUserIdNotifyExt(empId).AsQueryable()));
 
             Doc? doc =  qdocs.Where(
-                d => d.EmployeeId == empId || d.Responsible == empId).First();
+                d => d.Id == docId && (d.EmployeeId == empId || d.Responsible == empId)).First();
+
+            
             if (doc is not null)
             {
                 if (doc.EmployeeId == empId)

@@ -47,7 +47,7 @@ namespace ElectroDocument.Controllers
                 Claim claim = claims.Where(claim => claim.Type == ClaimTypes.NameIdentifier).First();
                 string dbid = claim.Value;
                 Employee? emp = await userService.GetEmployeeAsync(dbid);
-                model.docs = service.GetFullDocsByUserId(emp.Id);
+                model.docs = service.GetFullDocsByUserIdNotifyExt(emp.Id);
             }
             return View(model);
         }
@@ -403,7 +403,16 @@ namespace ElectroDocument.Controllers
             data.NewRole = model.Role;
             data.Salary = Convert.ToInt32(model.Salary);
             data.Resposible = model.responsible;
+            if (model.docId is not null)
+            {
+                if (model.editorId is null) return Results.StatusCode(StatusCodes.Status400BadRequest);
 
+                service.EditDocument(model.id, model.editorId.Value, model.docId.Value, data);
+            }
+            else
+            {
+                service.CreateDocument(model.id, data);
+            }
 
             return Results.StatusCode(StatusCodes.Status200OK);
         }

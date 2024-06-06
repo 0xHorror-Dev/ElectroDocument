@@ -36,6 +36,7 @@
 </style>
 
 <button id="AllDocsAccept" class="btn btn-primary">Подтвердить все</button>
+<br></br>
 <table>
     <thead>
         <tr>
@@ -49,8 +50,8 @@
         @foreach (Doc doc in docs)
         {
             bool isExecutor = doc.Responsible == Convert.ToInt64(userId);
-
-            <tr >
+            @if (isExecutor && Convert.ToBoolean(doc.ResponsibleNotified)) continue;
+            <tr>
                 <td onclick ="window.location.href='/Docs/View?id=@doc.Id';">@doc.Number</td>
                 <td onclick="window.location.href='/Docs/View?id=@doc.Id';">@doc.Date</td>
                 <td onclick="window.location.href='/Docs/View?id=@doc.Id';">@doc.Title @(isExecutor ? "(Исполнитель)" : doc.Responsible is null ? "" : Convert.ToBoolean(doc.ResponsibleNotified) ? "(Исполнитель уведомлен)" : "(Исполнитель еще не уведомлен)")</td>

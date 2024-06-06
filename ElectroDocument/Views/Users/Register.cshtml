@@ -113,7 +113,7 @@
             errorMessages.push("Пароль должен быть не мнее 8 символов.");
         }
 
-        if (!validatePhoneNumber(phoneNumber)) {
+        if (validatePhoneNumber(phoneNumber)) {
             errorMessages.push("Пожалуйства введите номер телефона правильно. Пример номера телефона: '+7 (123) 456-78-90'");
         }
 

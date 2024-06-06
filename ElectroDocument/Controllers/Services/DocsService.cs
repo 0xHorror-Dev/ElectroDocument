@@ -402,7 +402,7 @@ namespace ElectroDocument.Controllers.Services
                 deprivation.DocDetails = new DocDetail { Reason = deprivationData.Reason };
 
                 deprivation.DocType = (int)DocumentTypes.Deprivation;
-                deprivation.Title = "О лишение премии";
+                deprivation.Title = "О лишение премии.";
                 return deprivation;
             }
 
@@ -619,7 +619,7 @@ namespace ElectroDocument.Controllers.Services
             Doc rawDocument = await context.Docs.Where(d => d.Id == id).FirstAsync();
             DocumentTypes type = (DocumentTypes)rawDocument.DocType;
             Document doc = new Document();
-
+            
             string fullname = $"{rawDocument.Employee.Individual.Name} {rawDocument.Employee.Individual.Surname} {rawDocument.Employee.Individual.Patronymic}";
             switch (type)
             {
@@ -666,7 +666,7 @@ namespace ElectroDocument.Controllers.Services
                         Doc employeeContract = GetLastEmployeeContract(rawDocument.EmployeeId.Value);
                         DateOnly date = employeeContract.Date;
                         DateOnly dismissDate = rawDocument.Date;
-
+                        
                         doc.LoadFromFile("DismissedEmployee.docx");
                         Replace(doc, @"нумерок", rawDocument.Number.ToString());
                         Replace(doc, @"блинбдата", DateTime.Now.ToString("dd.MM.yyyy"));
