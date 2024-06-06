@@ -88,7 +88,8 @@ namespace ElectroDocument.Controllers
             string id = claim.Value;
             Employee? emp = await userService.GetEmployeeAsync(id);
 
-            if (emp.Role.AccessLevel == "Admin") return Redirect($"/Profile/Edit/{id}");
+
+            if (emp.Role.AccessLevel == "Admin" || emp.Role.AccessLevel == "Editor") return Redirect($"/Profile/Edit/{id}");
 
             ProfileModel model = new ProfileModel
             {

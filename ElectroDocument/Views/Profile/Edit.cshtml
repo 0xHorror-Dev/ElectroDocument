@@ -2,6 +2,7 @@
 @using ElectroDocument.Controllers.Services;
 @using Microsoft.AspNetCore.Identity;
 @using Microsoft.AspNetCore.Authorization;
+@using System.Security.Claims
 
 @inject UserService userService;
 @inject IAuthorizationService AuthorizationService;
@@ -21,7 +22,8 @@
     IEnumerable<Role> roles = Model.Roles;
     long roleid = @Position.Id;
     Employee? emp = await userService.GetEmployeeAsync(id.ToString());
-
+    var userClaims = User.Claims;
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
 <style>
@@ -69,6 +71,7 @@
             }
             else
             {
+
                 <div>
                     <p>Должность: @Position.Title</p>
                 </div>
@@ -90,20 +93,60 @@
         @{
             @if (res.Succeeded)
             {
-                <h1>Изменение пароля</h1>
-                <form onsubmit="return validateForm()" method="post" action="/Profile/AdminChangeProfilePassword">
-                    <input type="password" name="newPassword" placeholder="Новый пароль" id="Password" required>
-                    <input type="hidden" id="id" name="id" value="@id">
-                    @if (passwordError is not null)
-                    {
-                        <p class="error-message" id="error-message">Ошибка: @passwordError</p>
-                    }
-                    else
-                    {
-                        <p class="error-message" id="error-message"></p>
-                    }
-                    <button type="submit" class="btn-primary">Изменить пароль</button>
-                </form>
+                if (userId == id.ToString())
+                {
+                    <h1>Изменение пароля</h1>
+                    <form onsubmit="return validateForm()" method="post" action="/Profile/ChangePassword">
+                        <input type="password" name="currentPassword" placeholder="Текущий пароль" required>
+                        <input type="password" name="newPassword" id="Password" placeholder="Новый пароль" required>
+                        @if (passwordError is not null)
+                        {
+                            <p class="error-message" id="error-message">Ошибка: @passwordError</p>
+                        }
+                        else
+                        {
+                            <p class="error-message" id="error-message"></p>
+                        }
+                        <button type="submit" class="btn-primary">Изменить пароль</button>
+                    </form>
+                }
+                else
+                {
+                    <h1>Изменение пароля</h1>
+                    <form onsubmit="return validateForm()" method="post" action="/Profile/AdminChangeProfilePassword">
+                        <input type="password" name="newPassword" placeholder="Новый пароль" id="Password" required>
+                        <input type="hidden" id="id" name="id" value="@id">
+                        @if (passwordError is not null)
+                        {
+                            <p class="error-message" id="error-message">Ошибка: @passwordError</p>
+                        }
+                        else
+                        {
+                            <p class="error-message" id="error-message"></p>
+                        }
+                        <button type="submit" class="btn-primary">Изменить пароль</button>
+                    </form>
+                }
+            }
+            else
+            {
+                if(userId == id.ToString())
+                {
+                    <h1>Изменение пароля</h1>
+                    <form onsubmit="return validateForm()" method="post" action="/Profile/ChangePassword">
+                        <input type="password" name="currentPassword" placeholder="Текущий пароль" required>
+                        <input type="password" name="newPassword" id="Password" placeholder="Новый пароль" required>
+                        @if (passwordError is not null)
+                        {
+                            <p class="error-message" id="error-message">Ошибка: @passwordError</p>
+                        }
+                        else
+                        {
+                            <p class="error-message" id="error-message"></p>
+                        }
+                        <button type="submit" class="btn-primary">Изменить пароль</button>
+                    </form>
+                }
             }
         }
 
